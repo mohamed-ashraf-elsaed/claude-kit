@@ -54,5 +54,6 @@ src/
 
 ## Dogfooding
 
-The repo runs its own gate (`bin/quality-checks.sh`) via a pre-commit hook and a
-Claude Stop hook, including the changelog rule — the same philosophy it ships.
+The repo runs its own gate (`bin/quality-checks.sh`) via the committed
+`.githooks/pre-commit` hook, including the changelog rule — the same philosophy
+it ships. (A local Claude Stop hook may live in a gitignored `.claude/`.)

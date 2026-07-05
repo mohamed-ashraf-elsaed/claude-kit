@@ -51,7 +51,7 @@ stubs/                             PUBLISHED (copied) into host projects
 tests/                             Pest: Unit (logic) + Feature (command via Testbench)
 docs/                              Wiki pages (also pushed to the GitHub Wiki)
 bin/quality-checks.sh              THIS repo's own gate (Pint/PHPStan/Pest + changelog rule)
-.claude/ .githooks/                THIS repo dogfooding the gate
+.githooks/pre-commit               THIS repo's committed pre-commit gate
 .github/workflows/                 THIS repo's CI: tests.yml, lint.yml, release.yml
 ```
 

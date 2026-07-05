@@ -3,3 +3,13 @@ composer.lock
 .phpunit.cache/
 .phpunit.result.cache
 build/
+
+# Local Claude Code setup (dogfooded, but never published)
+/.claude/
+
+# IDE / editor / OS
+/.idea/
+/.vscode/
+/.fleet/
+*.iml
+.DS_Store
