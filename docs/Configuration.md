@@ -1,7 +1,6 @@
-# Configuration
+# 🔧 Configuration
 
-Most of what claude-kit installs is plain, editable config in your repo. Tune it
-directly.
+Almost everything claude-kit installs is plain, editable config in your repo. Tune it directly.
 
 ## Environment toggles
 
@@ -14,8 +13,7 @@ Set these in your shell, CI environment, or a hook wrapper.
 
 ## The `.claude-kit.json` manifest
 
-The installer writes a small manifest recording your choices; the runtime gate
-reads it to know what to run:
+The installer writes a small manifest recording your choices; the runtime gate reads it to know what to run.
 
 ```json
 {
@@ -25,42 +23,47 @@ reads it to know what to run:
 }
 ```
 
-- `tests.enabled` / `tests.tool` / `tests.coverage_min` — whether the gate runs
-  tests, with which runner, and the coverage threshold (`null` = don't enforce).
-- `hooks.feature_docs` — whether the Stop hook requires a feature doc for watched
-  code changes (the `CLAUDE_KIT_FEATURE_DOCS` env var overrides it).
+| Key | Meaning |
+| --- | --- |
+| `tests.enabled` | Whether the gate runs tests at all. |
+| `tests.tool` | `pest` or `phpunit`. |
+| `tests.coverage_min` | Coverage threshold, or `null` to not enforce. |
+| `hooks.feature_docs` | Whether the Stop hook requires a feature doc for watched code (env var overrides). |
 
-Edit this file to change the gate's behavior without re-running the installer.
-Pint and PHPStan run whenever `pint.json` / `phpstan.neon` exist, so removing
-those files disables them.
+> [!NOTE]
+> Pint and PHPStan run whenever `pint.json` / `phpstan.neon` exist — so removing one of those files disables that check. Edit the manifest to change test behavior without re-running the installer.
 
 ## Customising the output
 
-- **Rules** — edit `CLAUDE.md`. Fill in the product/integration/deployment
-  `TODO`s. This file is yours; the package never overwrites it without `--force`.
-- **PHPStan** — `phpstan.neon` is generated at install time with the level and
-  strict-rules toggle you chose. Edit it freely: change the level, add `paths`,
-  `ignoreErrors`, etc.
-- **Pint** — `pint.json` uses the Laravel preset plus a few strict rules. Adjust freely.
+<details>
+<summary>What each file is and how to change it</summary>
+
+- **Rules** — edit `CLAUDE.md`; fill in the product/integration/deployment `TODO`s. Never overwritten without `--force`.
+- **PHPStan** — `phpstan.neon` is generated with the level and strict toggle you chose. Change the level, add `paths` / `ignoreErrors` freely.
+- **Pint** — `pint.json` uses the Laravel preset plus a few strict rules.
 - **ESLint / Prettier / TypeScript** — the stack config files are yours to edit.
 - **Skills** — everything under `.claude/skills/` is editable; add your own.
-- **Permissions & hooks** — `.claude/settings.json` holds the Stop-hook wiring and
-  a permission allowlist. Extend the allowlist for your project's commands.
+- **Permissions & hooks** — `.claude/settings.json` holds the Stop-hook wiring and a permission allowlist. Extend it for your project's commands.
+</details>
 
 ## The pre-commit hook
 
-`claude-kit` sets `git config core.hooksPath .githooks` during install (composer's
-`post-autoload-dump` re-runs it). To disable locally:
+claude-kit sets `git config core.hooksPath .githooks` during install (composer's `post-autoload-dump` re-runs it).
 
 ```bash
-git config --unset core.hooksPath
+git config --unset core.hooksPath   # disable locally
+git commit --no-verify              # bypass a single commit
 ```
-
-Bypass a single commit with `git commit --no-verify`.
 
 ## Keeping machinery current
 
-`quality-checks.sh`, the Stop hook, and `phpstan/base.neon` live under
-`vendor/…/runtime/` and update with `composer update mohamed-ashraf-elsaed/claude-kit`.
-To refresh the copied content (skills, rules), re-run
-`php artisan claude-kit:install --force` for the relevant parts.
+`quality-checks.sh` and the Stop hook live under `vendor/…/runtime/` and update with:
+
+```bash
+composer update mohamed-ashraf-elsaed/claude-kit
+```
+
+To refresh the copied content (skills, rules), re-run `php artisan claude-kit:install --force` for the parts you want. See **[Upgrading](Upgrading)**.
+
+---
+<sub>[← Usage](Usage) · 🏠 [Home](Home) · [Frontend stacks →](Frontend-Stacks)</sub>
