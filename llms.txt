@@ -1,0 +1,24 @@
+# claude-kit
+
+> A Composer dev package that sets up any Laravel project for Claude Code — and any AI coding agent — in one command. It scaffolds engineering rules (CLAUDE.md), a Stop-hook + pre-commit quality gate (PHPStan, Pint, Pest), reusable Claude Code skills, feature-doc templates, and stack-aware frontend tooling (Inertia+Vue, Inertia+React, Blade, or API-only). Install with `composer require --dev mohamed-ashraf-elsaed/claude-kit` then `php artisan claude-kit:install`.
+
+Key facts:
+- Language/framework: PHP 8.2+, Laravel 11/12/13.
+- Package name (Packagist): mohamed-ashraf-elsaed/claude-kit
+- License: MIT.
+- The installer is interactive: choose Pint, PHPStan (+level, +strict), tests (+runner Pest/PHPUnit, +coverage, +architecture tests), which hooks enforce the gate, which skills to install (plus skills.sh discovery), and which extras to scaffold.
+- Hybrid updates: machinery lives in vendor/…/runtime/ (auto-updates via `composer update`); content is copied into the project (customisable).
+
+## Docs
+- [Installation](https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Installation): requirements and first run.
+- [Usage](https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Usage): the command, flags, and the interactive flow.
+- [Configuration](https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Configuration): env toggles and the .claude-kit.json manifest.
+- [Frontend stacks](https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Frontend-Stacks): Vue / React / Blade / API-only detection.
+- [Quality gate](https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Quality-Gate): Pint, PHPStan, Pest, and the three hooks.
+- [Skills](https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Skills): bundled skills and skills.sh integration.
+- [Architecture](https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Architecture): how the package is built.
+
+## Optional
+- [Repository](https://github.com/mohamed-ashraf-elsaed/claude-kit)
+- [Packagist](https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit)
+- [Changelog](https://github.com/mohamed-ashraf-elsaed/claude-kit/blob/main/CHANGELOG.md)

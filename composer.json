@@ -1,6 +1,6 @@
 {
     "name": "mohamed-ashraf-elsaed/claude-kit",
-    "description": "One-command Claude Code + quality-gate setup for Laravel: engineering rules, Stop/pre-commit hooks, skills, PHPStan/Pint/Pest, and stack-aware frontend tooling.",
+    "description": "One command sets up Claude Code (and any AI coding agent) on a Laravel project: engineering rules, a quality gate (PHPStan, Pint, Pest), skills, git hooks, and stack-aware frontend tooling.",
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/mohamed-ashraf-elsaed/claude-kit",
@@ -8,13 +8,27 @@
         "laravel",
         "claude",
         "claude-code",
-        "quality",
+        "anthropic",
+        "ai",
+        "ai-agents",
+        "llm",
+        "mcp",
+        "cursor",
+        "github-copilot",
+        "code-quality",
+        "quality-gate",
+        "static-analysis",
         "phpstan",
+        "larastan",
         "pint",
         "pest",
+        "code-style",
+        "coding-standards",
+        "git-hooks",
         "developer-tools",
+        "developer-experience",
         "scaffolding",
-        "ai"
+        "conventions"
     ],
     "authors": [
         {

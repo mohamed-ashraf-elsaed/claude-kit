@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-07-05
+
+### Added
+
+- `AGENTS.md` (the tool-agnostic agents.md standard) and `llms.txt`
+  (llmstxt.org) so AI coding agents and LLM-powered search can discover and
+  correctly use the package.
+- A repository banner and richer README (badges, "who it's for").
+
+### Changed
+
+- Expanded Composer `keywords` and sharpened the `description` for Packagist and
+  search discoverability.
+- License badge now reads GitHub's detected license (reliable MIT) instead of
+  the flaky Packagist license badge.
+- Corrected the `LICENSE` copyright holder.
+
 ## [0.2.1] - 2026-07-05
 
 ### Fixed
@@ -69,7 +86,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Actions workflows.
 - Idempotent, non-destructive `composer.json` / `package.json` mergers.
 
-[Unreleased]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/mohamed-ashraf-elsaed/claude-kit/releases/tag/v0.1.0

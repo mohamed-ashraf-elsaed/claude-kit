@@ -1,20 +1,37 @@
-# claude-kit
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mohamed-ashraf-elsaed/claude-kit/main/.github/banner.svg" alt="claude-kit — one command sets up Claude Code and a quality gate for Laravel" width="100%">
+</p>
 
-[![Latest version](https://img.shields.io/packagist/v/mohamed-ashraf-elsaed/claude-kit.svg?style=flat-square)](https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit)
-[![Tests](https://img.shields.io/github/actions/workflow/status/mohamed-ashraf-elsaed/claude-kit/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/mohamed-ashraf-elsaed/claude-kit/actions/workflows/tests.yml)
-[![Lint](https://img.shields.io/github/actions/workflow/status/mohamed-ashraf-elsaed/claude-kit/lint.yml?branch=main&label=lint&style=flat-square)](https://github.com/mohamed-ashraf-elsaed/claude-kit/actions/workflows/lint.yml)
-[![PHP version](https://img.shields.io/packagist/php-v/mohamed-ashraf-elsaed/claude-kit?style=flat-square)](https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit)
-[![Downloads](https://img.shields.io/packagist/dt/mohamed-ashraf-elsaed/claude-kit.svg?style=flat-square)](https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit)
-[![License](https://img.shields.io/packagist/l/mohamed-ashraf-elsaed/claude-kit.svg?style=flat-square)](LICENSE)
+<h1 align="center">claude-kit</h1>
 
-**One command sets up a Laravel project for [Claude Code](https://claude.com/claude-code):**
-the engineering rules, a Stop-hook + pre-commit **quality gate**, reusable
-skills, PHPStan level 7 + strict-rules, Pint, Pest with an 80% coverage gate, an
+<p align="center">
+  <strong>Set up <a href="https://claude.com/claude-code">Claude Code</a> — and any AI coding agent — on a Laravel project in one command.</strong><br>
+  Engineering rules, a quality gate (PHPStan · Pint · Pest), skills, feature-doc scaffolding, and stack-aware frontend tooling.
+</p>
+
+<p align="center">
+  <a href="https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit"><img src="https://img.shields.io/packagist/v/mohamed-ashraf-elsaed/claude-kit.svg?style=flat-square" alt="Latest version"></a>
+  <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/mohamed-ashraf-elsaed/claude-kit/tests.yml?branch=main&label=tests&style=flat-square" alt="Tests"></a>
+  <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/actions/workflows/lint.yml"><img src="https://img.shields.io/github/actions/workflow/status/mohamed-ashraf-elsaed/claude-kit/lint.yml?branch=main&label=lint&style=flat-square" alt="Lint"></a>
+  <a href="https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit"><img src="https://img.shields.io/packagist/php-v/mohamed-ashraf-elsaed/claude-kit?style=flat-square" alt="PHP version"></a>
+  <a href="https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit"><img src="https://img.shields.io/packagist/dt/mohamed-ashraf-elsaed/claude-kit.svg?style=flat-square" alt="Downloads"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/mohamed-ashraf-elsaed/claude-kit?style=flat-square" alt="License"></a>
+</p>
+
+---
+
+`claude-kit` packages a battle-tested setup so every Laravel project — and every
+developer — gets the same guardrails instead of hand-copying config between
+repos: a Stop-hook + pre-commit **quality gate**, reusable Claude Code **skills**,
+PHPStan level 7 + strict-rules, Pint, Pest with an 80% coverage gate, an
 architecture test suite, feature-doc scaffolding, and **stack-aware frontend
 tooling** (Vue, React, Blade, or none).
 
-It packages a battle-tested setup so every project — and every developer — gets
-the same guardrails instead of hand-copying config between repos.
+### Who it's for
+
+- Teams putting **Claude Code**, **Cursor**, or **GitHub Copilot** to work on a **Laravel** codebase and wanting consistent, enforced conventions.
+- Anyone who wants **one command** for PHPStan + Pint + Pest + git hooks instead of wiring them by hand.
+- Projects that need **AI coding guardrails** an agent can't skip — the same gate runs at commit time, at the end of every Claude turn, and in CI.
 
 ## Table of contents
 
