@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>claude-kit — Set up Claude Code + a quality gate for Laravel in one command</title>
-<meta name="description" content="claude-kit is a Composer package that sets up Claude Code (and any AI coding agent) on a Laravel project in one command: engineering rules, a quality gate (PHPStan, Pint, Pest), skills, git hooks, and stack-aware frontend tooling.">
-<meta name="keywords" content="Laravel, Claude Code, Cursor, GitHub Copilot, AI coding agent, PHPStan, Larastan, Pint, Pest, quality gate, code quality, static analysis, MCP, Anthropic, developer tools">
+<meta name="description" content="claude-kit sets up Claude Code (and any AI coding agent) on a Laravel project in one command: engineering rules, a quality gate (PHPStan, Pint, Pest), skills, git hooks, and stack-aware frontend tooling.">
+<meta name="keywords" content="Laravel, Claude Code, Cursor, GitHub Copilot, AI coding agent, PHPStan, Larastan, Pint, Pest, quality gate, MCP, Anthropic">
 <link rel="canonical" href="https://mohamed-ashraf-elsaed.github.io/claude-kit/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="claude-kit — Claude Code + quality gate for Laravel, in one command">
@@ -17,91 +17,251 @@
 <meta name="twitter:description" content="One command: engineering rules, PHPStan · Pint · Pest, skills, git hooks, stack-aware frontend tooling.">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/mohamed-ashraf-elsaed/claude-kit/main/.github/social-preview.png">
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareSourceCode",
-  "name": "claude-kit",
-  "description": "A Composer package that sets up Claude Code (and any AI coding agent) on a Laravel project in one command: engineering rules, a quality gate (PHPStan, Pint, Pest), skills, git hooks, and stack-aware frontend tooling.",
-  "url": "https://mohamed-ashraf-elsaed.github.io/claude-kit/",
-  "codeRepository": "https://github.com/mohamed-ashraf-elsaed/claude-kit",
-  "downloadUrl": "https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit",
-  "programmingLanguage": "PHP",
-  "runtimePlatform": "Laravel",
-  "license": "https://opensource.org/licenses/MIT",
-  "keywords": "Laravel, Claude Code, Cursor, GitHub Copilot, AI coding agent, PHPStan, Pint, Pest, quality gate, MCP",
-  "author": { "@type": "Person", "name": "Mohamed Elsaed" }
-}
+{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"claude-kit","description":"A Composer package that sets up Claude Code (and any AI coding agent) on a Laravel project in one command: engineering rules, a quality gate (PHPStan, Pint, Pest), skills, git hooks, and stack-aware frontend tooling.","url":"https://mohamed-ashraf-elsaed.github.io/claude-kit/","codeRepository":"https://github.com/mohamed-ashraf-elsaed/claude-kit","downloadUrl":"https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit","programmingLanguage":"PHP","runtimePlatform":"Laravel","license":"https://opensource.org/licenses/MIT","keywords":"Laravel, Claude Code, Cursor, GitHub Copilot, PHPStan, Pint, Pest, MCP","author":{"@type":"Person","name":"Mohamed Elsaed"}}
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-  :root { --indigo:#6366f1; --indigo-d:#4338ca; --ink:#0f1222; --muted:#5b6178; }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); line-height:1.6; }
-  a { color:var(--indigo-d); }
-  .hero { background:linear-gradient(135deg,#4338ca,#6366f1 55%,#7c3aed); color:#fff; padding:88px 24px 72px; text-align:center; }
-  .hero .kicker { letter-spacing:5px; text-transform:uppercase; font-weight:700; opacity:.85; font-size:14px; }
-  .hero h1 { font-size:76px; font-weight:800; letter-spacing:-2px; margin:10px 0 14px; }
-  .hero p { font-size:23px; max-width:760px; margin:0 auto 30px; opacity:.96; }
-  .cmd { display:inline-block; font-family:ui-monospace,Menlo,Consolas,monospace; background:rgba(0,0,0,.28); color:#fff; padding:14px 22px; border-radius:12px; font-size:17px; }
-  .btns { margin-top:28px; display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
-  .btn { background:#fff; color:var(--indigo-d); text-decoration:none; font-weight:700; padding:13px 24px; border-radius:10px; }
-  .btn.ghost { background:rgba(255,255,255,.14); color:#fff; }
-  .wrap { max-width:940px; margin:0 auto; padding:64px 24px; }
-  h2 { font-size:30px; margin:0 0 24px; letter-spacing:-.5px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
-  .card { border:1px solid #ecedf3; border-radius:14px; padding:22px; }
-  .card h3 { font-size:18px; margin:0 0 8px; }
-  .card p { color:var(--muted); font-size:15px; }
-  ul.feat { list-style:none; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
-  ul.feat li { padding-left:26px; position:relative; color:#2b3040; }
-  ul.feat li::before { content:"✓"; color:#22c55e; font-weight:800; position:absolute; left:0; }
-  footer { border-top:1px solid #ecedf3; text-align:center; padding:36px 24px; color:var(--muted); font-size:14px; }
-  footer a { margin:0 8px; }
+  :root{
+    --bg:#050507; --panel:#0b0b12; --text:#e8eaf2; --muted:#8b90a6; --faint:#5b5f73;
+    --indigo:#6366f1; --violet:#8b5cf6; --emerald:#34d399;
+    --hairline:rgba(255,255,255,.08); --hairline-2:rgba(255,255,255,.14);
+    --ease:cubic-bezier(.32,.72,0,1);
+    --maxw:1120px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:"Plus Jakarta Sans",system-ui,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    letter-spacing:-.01em;
+  }
+  .display{font-family:"Clash Display","Plus Jakarta Sans",sans-serif; letter-spacing:-.03em; line-height:.98;}
+  .mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;}
+  a{color:inherit;text-decoration:none}
+
+  /* --- ambient background: mesh orbs + grain --- */
+  .orbs{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;will-change:transform}
+  .orb.a{width:640px;height:640px;background:radial-gradient(circle,#4f46e5,transparent 62%);top:-220px;left:-120px;animation:float 14s var(--ease) infinite alternate}
+  .orb.b{width:560px;height:560px;background:radial-gradient(circle,#7c3aed,transparent 62%);top:-120px;right:-160px;animation:float 18s var(--ease) infinite alternate-reverse}
+  .orb.c{width:520px;height:520px;background:radial-gradient(circle,#10b981,transparent 65%);top:520px;left:38%;opacity:.28;animation:float 20s var(--ease) infinite alternate}
+  @keyframes float{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,44px,0)}}
+  .grain{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  @media(prefers-reduced-motion:reduce){.orb{animation:none}}
+
+  /* --- floating glass nav --- */
+  .nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;justify-content:center;padding:22px 16px}
+  .nav-inner{display:flex;align-items:center;gap:26px;padding:10px 12px 10px 22px;border-radius:999px;
+    background:rgba(15,16,26,.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--hairline);box-shadow:0 8px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06)}
+  .nav-brand{font-weight:700;font-size:15px}
+  .nav-links{display:flex;gap:22px;font-size:14px;color:var(--muted)}
+  .nav-links a{transition:color .4s var(--ease)}
+  .nav-links a:hover{color:var(--text)}
+  .nav-gh{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#08080c;font-weight:600;font-size:13.5px;
+    padding:9px 16px;border-radius:999px;transition:transform .4s var(--ease)}
+  .nav-gh:hover{transform:scale(1.04)}
+  .nav-gh:active{transform:scale(.97)}
+  @media(max-width:720px){.nav-links{display:none}}
+
+  /* --- layout --- */
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  section{position:relative}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:999px;
+    background:rgba(255,255,255,.04);border:1px solid var(--hairline);
+    font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.22em;color:var(--muted)}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);box-shadow:0 0 12px var(--emerald)}
+
+  /* --- hero --- */
+  .hero{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:150px 24px 90px}
+  .hero h1{font-size:clamp(64px,13vw,168px);font-weight:600;margin:26px 0 0}
+  .hero .sub{max-width:660px;margin:26px auto 0;font-size:clamp(17px,2.4vw,21px);color:var(--muted)}
+  .hero .sub b{color:var(--text);font-weight:600}
+
+  /* --- install command: double-bezel --- */
+  .install{margin:44px auto 0;width:min(680px,100%)}
+  .install .shell{padding:8px;border-radius:24px;background:rgba(255,255,255,.045);
+    border:1px solid var(--hairline);box-shadow:0 30px 80px -30px rgba(79,70,229,.5)}
+  .install .core{display:flex;align-items:center;gap:14px;padding:16px 16px 16px 22px;border-radius:16px;
+    background:linear-gradient(180deg,#0d0d16,#090910);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+  .install .prompt{color:var(--faint)}
+  .install code{flex:1;text-align:left;font-size:clamp(12.5px,2.1vw,15.5px);white-space:nowrap;overflow-x:auto;color:#dfe2f0}
+  .install code::-webkit-scrollbar{display:none}
+  .copy{flex-shrink:0;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;
+    background:rgba(255,255,255,.06);border:1px solid var(--hairline-2);color:var(--text);cursor:pointer;
+    font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;font-weight:600;
+    transition:transform .4s var(--ease),background .4s var(--ease)}
+  .copy:hover{background:rgba(255,255,255,.12)}
+  .copy:active{transform:scale(.95)}
+  .copy svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6}
+  .copy.done{background:rgba(52,211,153,.16);border-color:rgba(52,211,153,.4);color:var(--emerald)}
+
+  /* --- CTAs --- */
+  .ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+  .btn{display:inline-flex;align-items:center;gap:12px;padding:14px 16px 14px 24px;border-radius:999px;
+    font-weight:600;font-size:15px;transition:transform .4s var(--ease),background .4s var(--ease);border:1px solid transparent}
+  .btn .ico{width:30px;height:30px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
+    transition:transform .4s var(--ease)}
+  .btn:active{transform:scale(.98)}
+  .btn-primary{background:#fff;color:#08080c}
+  .btn-primary .ico{background:rgba(0,0,0,.08)}
+  .btn-primary:hover .ico{transform:translate(3px,-1px) scale(1.06)}
+  .btn-ghost{background:rgba(255,255,255,.04);border-color:var(--hairline);color:var(--text)}
+  .btn-ghost:hover{background:rgba(255,255,255,.09)}
+  .btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7}
+
+  /* --- section heads --- */
+  .shead{display:flex;flex-direction:column;gap:18px;margin-bottom:56px}
+  .shead h2{font-size:clamp(34px,5vw,56px);font-weight:600}
+  .shead p{color:var(--muted);max-width:560px;font-size:17px}
+
+  /* --- bento (what it installs) --- */
+  .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}
+  .cell{border-radius:26px;padding:6px;background:rgba(255,255,255,.03);border:1px solid var(--hairline);
+    transition:transform .6s var(--ease),border-color .6s var(--ease)}
+  .cell:hover{transform:translateY(-4px);border-color:var(--hairline-2)}
+  .cell .in{height:100%;border-radius:21px;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06);display:flex;flex-direction:column;gap:12px}
+  .cell .badge{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+    background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.3)}
+  .cell .badge svg{width:22px;height:22px;stroke:#a5b4fc;fill:none;stroke-width:1.4}
+  .cell h3{font-size:18px;font-weight:600}
+  .cell p{color:var(--muted);font-size:14.5px}
+  .c-8{grid-column:span 3}.c-4{grid-column:span 3}
+  .cell.wide{grid-column:span 6;background:linear-gradient(120deg,rgba(99,102,241,.14),rgba(139,92,246,.06))}
+  .cell.wide .in{background:none;flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px}
+  .cell.wide h3{font-size:clamp(20px,3vw,26px);max-width:640px}
+  @media(max-width:860px){.bento{grid-template-columns:1fr}.c-8,.c-4,.cell.wide{grid-column:span 1}}
+
+  /* --- why cards --- */
+  .why{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  @media(max-width:760px){.why{grid-template-columns:1fr}}
+  .why .num{font-size:13px;color:var(--indigo);font-weight:700;letter-spacing:.1em}
+
+  /* --- links row --- */
+  .links{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px}
+  .links a{padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid var(--hairline);
+    font-size:14px;color:var(--muted);transition:all .4s var(--ease)}
+  .links a:hover{color:var(--text);border-color:var(--hairline-2);transform:translateY(-2px)}
+
+  /* --- footer --- */
+  footer{border-top:1px solid var(--hairline);margin-top:120px;padding:48px 24px;text-align:center;color:var(--faint);font-size:14px}
+  footer a{color:var(--muted);margin:0 10px;transition:color .4s var(--ease)}
+  footer a:hover{color:var(--text)}
+
+  .spacer{height:140px}
+  @media(max-width:760px){.spacer{height:96px}}
+
+  /* --- scroll reveal --- */
+  .reveal{opacity:0;transform:translateY(38px);filter:blur(8px);transition:opacity .9s var(--ease),transform .9s var(--ease),filter .9s var(--ease)}
+  .reveal.in{opacity:1;transform:none;filter:none}
 </style>
 </head>
 <body>
+  <div class="orbs"><span class="orb a"></span><span class="orb b"></span><span class="orb c"></span></div>
+  <div class="grain"></div>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <span class="nav-brand">claude-kit</span>
+      <div class="nav-links">
+        <a href="#install">Install</a>
+        <a href="#features">Features</a>
+        <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki">Docs</a>
+      </div>
+      <a class="nav-gh" href="https://github.com/mohamed-ashraf-elsaed/claude-kit">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49v-1.7c-2.78.62-3.37-1.22-3.37-1.22-.46-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.85.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.72 0 0 .84-.28 2.75 1.05a9.4 9.4 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.82c0 .27.18.6.69.49A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg>
+        Star
+      </a>
+    </div>
+  </nav>
+
   <header class="hero">
-    <div class="kicker">Laravel · Claude Code</div>
-    <h1>claude-kit</h1>
-    <p>Set up <strong>Claude Code</strong> — and any AI coding agent — on a Laravel project in one command. Engineering rules, a quality gate, skills, and stack-aware frontend tooling.</p>
-    <div class="cmd">$ composer require --dev mohamed-ashraf-elsaed/claude-kit</div>
-    <div class="btns">
-      <a class="btn" href="https://github.com/mohamed-ashraf-elsaed/claude-kit">GitHub</a>
-      <a class="btn ghost" href="https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit">Packagist</a>
-      <a class="btn ghost" href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki">Docs</a>
+    <div class="reveal"><span class="eyebrow"><span class="dot"></span>Laravel · Claude Code</span></div>
+    <h1 class="display reveal">claude-kit</h1>
+    <p class="sub reveal">Set up <b>Claude Code</b> — and any AI coding agent — on a Laravel project in one command. Engineering rules, a quality gate, skills, and stack-aware frontend tooling.</p>
+
+    <div class="install reveal" id="install">
+      <div class="shell">
+        <div class="core">
+          <span class="prompt mono">$</span>
+          <code class="mono" id="cmd">composer require --dev mohamed-ashraf-elsaed/claude-kit</code>
+          <button class="copy" id="copyBtn" aria-label="Copy install command">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V5.5A1.5 1.5 0 0 1 6.5 4H15"/></svg>
+            <span id="copyLabel">Copy</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctas reveal">
+      <a class="btn btn-primary" href="https://github.com/mohamed-ashraf-elsaed/claude-kit">
+        View on GitHub <span class="ico"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+      </a>
+      <a class="btn btn-ghost" href="https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit">Packagist</a>
+      <a class="btn btn-ghost" href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki">Documentation</a>
     </div>
   </header>
 
-  <main class="wrap">
-    <section>
-      <h2>What it installs</h2>
-      <ul class="feat">
-        <li>Engineering rules (CLAUDE.md)</li>
-        <li>Quality gate: PHPStan · Pint · Pest</li>
-        <li>Claude Code skills</li>
-        <li>Git pre-commit + Stop hooks</li>
-        <li>Feature-doc scaffolding</li>
-        <li>Stack-aware frontend tooling</li>
-      </ul>
-    </section>
+  <section class="wrap" id="features">
+    <div class="shead reveal">
+      <span class="eyebrow"><span class="dot"></span>What it installs</span>
+      <h2 class="display">Everything, one command.</h2>
+      <p>Pick exactly what you want — the installer is interactive, and nothing is forced.</p>
+    </div>
 
-    <section style="margin-top:56px;">
-      <h2>Why claude-kit</h2>
-      <div class="grid">
-        <div class="card"><h3>One command</h3><p>Interactive installer: choose Pint, PHPStan level, test runner &amp; coverage, hooks, skills, and extras — nothing forced.</p></div>
-        <div class="card"><h3>One gate, everywhere</h3><p>The same checks run at commit time, at the end of every Claude turn, and in CI — so guardrails can't be skipped.</p></div>
-        <div class="card"><h3>Hybrid updates</h3><p>Machinery auto-updates via <code>composer update</code>; the rules and configs are copied into your repo so you own them.</p></div>
-        <div class="card"><h3>Any agent</h3><p>Built for Claude Code; the rules and quality gate work with Cursor, GitHub Copilot, or any AI coding agent.</p></div>
+    <div class="bento">
+      <div class="cell wide reveal">
+        <div class="in">
+          <h3 class="display">Engineering rules an AI agent can't skip — enforced at commit, at the end of every turn, and in CI.</h3>
+          <a class="btn btn-primary" href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Quality-Gate">The gate <span class="ico"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+        </div>
       </div>
-    </section>
+      <div class="cell c-8 reveal"><div class="in"><span class="badge"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg></span><h3>Engineering rules</h3><p>A generated CLAUDE.md with your project's conventions.</p></div></div>
+      <div class="cell c-4 reveal"><div class="in"><span class="badge"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z"/></svg></span><h3>Quality gate</h3><p>PHPStan · Pint · Pest, with a coverage gate.</p></div></div>
+      <div class="cell c-4 reveal"><div class="in"><span class="badge"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5z"/></svg></span><h3>Skills</h3><p>Reusable Claude Code skills for your stack.</p></div></div>
+      <div class="cell c-8 reveal"><div class="in"><span class="badge"><svg viewBox="0 0 24 24"><path d="M6 3v12M6 21a3 3 0 100-6 3 3 0 000 6zM18 9a3 3 0 100-6 3 3 0 000 6zM18 6c0 6-12 3-12 9"/></svg></span><h3>Git pre-commit + Stop hooks</h3><p>The same gate runs everywhere — locally and on the agent.</p></div></div>
+      <div class="cell c-4 reveal"><div class="in"><span class="badge"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg></span><h3>Feature docs</h3><p>Templates the gate can require per change.</p></div></div>
+      <div class="cell c-8 reveal"><div class="in"><span class="badge"><svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h10"/></svg></span><h3>Stack-aware frontend tooling</h3><p>ESLint · Prettier · type-checks for Vue, React, Blade — or nothing for API-only.</p></div></div>
+    </div>
+  </section>
 
-    <section style="margin-top:56px;">
-      <h2>Get started</h2>
-      <p><a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Installation">Installation</a> ·
-         <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Usage">Usage</a> ·
-         <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Quality-Gate">Quality gate</a> ·
-         <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/FAQ">FAQ</a></p>
-    </section>
-  </main>
+  <div class="spacer"></div>
+
+  <section class="wrap">
+    <div class="shead reveal">
+      <span class="eyebrow"><span class="dot"></span>Why claude-kit</span>
+      <h2 class="display">Guardrails that hold.</h2>
+    </div>
+    <div class="why">
+      <div class="cell reveal"><div class="in"><span class="num">01</span><h3>One command</h3><p>Interactive installer: choose Pint, PHPStan level, test runner &amp; coverage, hooks, skills, and extras — nothing forced.</p></div></div>
+      <div class="cell reveal"><div class="in"><span class="num">02</span><h3>One gate, everywhere</h3><p>The same checks run at commit time, at the end of every Claude turn, and in CI — so guardrails can't be skipped.</p></div></div>
+      <div class="cell reveal"><div class="in"><span class="num">03</span><h3>Hybrid updates</h3><p>Machinery auto-updates via <span class="mono">composer update</span>; the rules and configs are copied into your repo so you own them.</p></div></div>
+      <div class="cell reveal"><div class="in"><span class="num">04</span><h3>Any agent</h3><p>Built for Claude Code; the rules and quality gate work with Cursor, GitHub Copilot, or any AI coding agent.</p></div></div>
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+
+  <section class="wrap">
+    <div class="shead reveal">
+      <span class="eyebrow"><span class="dot"></span>Get started</span>
+      <h2 class="display">Read the docs.</h2>
+      <div class="links reveal">
+        <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Installation">Installation</a>
+        <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Usage">Usage</a>
+        <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Quality-Gate">Quality gate</a>
+        <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Frontend-Stacks">Frontend stacks</a>
+        <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/FAQ">FAQ</a>
+      </div>
+    </div>
+  </section>
 
   <footer>
     <div>
@@ -110,7 +270,35 @@
       <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki">Docs</a> ·
       <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/blob/main/CHANGELOG.md">Changelog</a>
     </div>
-    <div style="margin-top:10px;">MIT © Mohamed Elsaed · Requires PHP 8.2+ and Laravel 11/12/13</div>
+    <div style="margin-top:12px">MIT © Mohamed Elsaed · Requires PHP 8.2+ and Laravel 11/12/13</div>
   </footer>
+
+<script>
+  // Copy-to-clipboard
+  (function(){
+    var btn=document.getElementById('copyBtn'),label=document.getElementById('copyLabel'),
+        cmd=document.getElementById('cmd').textContent.trim();
+    btn.addEventListener('click',function(){
+      navigator.clipboard.writeText(cmd).then(function(){
+        btn.classList.add('done');label.textContent='Copied';
+        setTimeout(function(){btn.classList.remove('done');label.textContent='Copy';},1800);
+      });
+    });
+  })();
+  // Staggered scroll reveals
+  (function(){
+    var els=document.querySelectorAll('.reveal');
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e,i){
+        if(e.isIntersecting){
+          var d=Array.prototype.indexOf.call(e.target.parentNode.children,e.target);
+          e.target.style.transitionDelay=(Math.min(d,6)*70)+'ms';
+          e.target.classList.add('in');io.unobserve(e.target);
+        }
+      });
+    },{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  })();
+</script>
 </body>
 </html>
