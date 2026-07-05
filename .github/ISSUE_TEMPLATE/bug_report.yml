@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a problem with claude-kit
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Please fill in the details below so we can reproduce the issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands you ran (e.g. `php artisan claude-kit:install --stack=inertia-vue`).
+      placeholder: |
+        1. composer require --dev mohamed-ashraf-elsaed/claude-kit
+        2. php artisan claude-kit:install ...
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: stack
+    attributes:
+      label: Frontend stack
+      options:
+        - inertia-vue
+        - inertia-react
+        - blade
+        - none (API-only)
+        - not sure
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: claude-kit, PHP, and Laravel versions.
+      placeholder: "claude-kit 0.1.0, PHP 8.4, Laravel 12"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output / logs
+      render: shell

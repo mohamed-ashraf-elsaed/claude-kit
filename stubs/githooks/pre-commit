@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# Local pre-commit gate. Runs the same quality suite as CI and Claude's Stop
+# hook, so human commits cannot land style/type/test/coverage regressions.
+#
+# Enabled via `git config core.hooksPath .githooks` (wired automatically by the
+# composer post-autoload-dump script that claude-kit installs). Bypass in a
+# genuine emergency with: git commit --no-verify
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT" || exit 1
+
+QUALITY="$REPO_ROOT/vendor/mohamed-ashraf-elsaed/claude-kit/runtime/quality-checks.sh"
+[ -f "$QUALITY" ] || QUALITY="$REPO_ROOT/bin/quality-checks.sh"
+
+if ! bash "$QUALITY"; then
+    echo "" >&2
+    echo "✖ Pre-commit quality gate failed. Fix the issues above, or use --no-verify to bypass." >&2
+    exit 1
+fi
+
+echo "✔ Quality gate passed."
+exit 0

@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+|--------------------------------------------------------------------------
+| Architecture Tests
+|--------------------------------------------------------------------------
+|
+| These tests enforce the project's non-negotiable architecture and typing
+| rules. They run on every `php artisan test` and via the Stop quality gate.
+| See the "Engineering Rules" section of CLAUDE.md for the why. Delete any
+| rule below that does not match how your application is structured.
+|
+*/
+
+arch('all application code declares strict types')
+    ->expect('App')
+    ->toUseStrictTypes();
+
+arch('no debugging helpers leak into the codebase')
+    ->expect(['dd', 'dump', 'ray', 'var_dump', 'print_r', 'die', 'exit'])
+    ->not->toBeUsed();
+
+arch('controllers are thin and extend the base controller')
+    ->expect('App\Http\Controllers')
+    ->toHaveSuffix('Controller')
+    ->toExtend('App\Http\Controllers\Controller')
+    ->ignoring('App\Http\Controllers\Controller');
+
+arch('controllers never touch the database directly')
+    ->expect('App\Http\Controllers')
+    ->not->toUse(['Illuminate\Support\Facades\DB']);
+
+arch('services hold business logic, are final and suffixed')
+    ->expect('App\Services')
+    ->toBeClasses()
+    ->toBeFinal()
+    ->toHaveSuffix('Service');
+
+arch('single-purpose actions are final, suffixed and invokable')
+    ->expect('App\Actions')
+    ->toBeClasses()
+    ->toBeFinal()
+    ->toHaveSuffix('Action')
+    ->toHaveMethod('__invoke');
+
+arch('contracts are interfaces')
+    ->expect('App\Contracts')
+    ->toBeInterfaces();
+
+arch('data objects are immutable, final and suffixed')
+    ->expect('App\Data')
+    ->toBeClasses()
+    ->toBeFinal()
+    ->toBeReadonly()
+    ->toHaveSuffix('Data');
+
+arch('models live only in the Models namespace')
+    ->expect('App\Models')
+    ->toBeClasses()
+    ->toExtend('Illuminate\Database\Eloquent\Model');

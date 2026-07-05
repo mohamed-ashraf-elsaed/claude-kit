@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#
+# Local pre-commit gate for the claude-kit repo. Enable with:
+#     git config core.hooksPath .githooks
+# Bypass in a genuine emergency with: git commit --no-verify
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+if ! "$REPO_ROOT/bin/quality-checks.sh"; then
+    echo "" >&2
+    echo "✖ Pre-commit quality gate failed. Fix the issues above, or use --no-verify to bypass." >&2
+    exit 1
+fi
+
+echo "✔ Quality gate passed."
+exit 0

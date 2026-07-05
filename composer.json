@@ -1,0 +1,86 @@
+{
+    "name": "mohamed-ashraf-elsaed/claude-kit",
+    "description": "One-command Claude Code + quality-gate setup for Laravel: engineering rules, Stop/pre-commit hooks, skills, PHPStan/Pint/Pest, and stack-aware frontend tooling.",
+    "type": "library",
+    "license": "MIT",
+    "homepage": "https://github.com/mohamed-ashraf-elsaed/claude-kit",
+    "keywords": [
+        "laravel",
+        "claude",
+        "claude-code",
+        "quality",
+        "phpstan",
+        "pint",
+        "pest",
+        "developer-tools",
+        "scaffolding",
+        "ai"
+    ],
+    "authors": [
+        {
+            "name": "Mohamed Elsaed",
+            "email": "m.ashraf.saed@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/mohamed-ashraf-elsaed/claude-kit/issues",
+        "source": "https://github.com/mohamed-ashraf-elsaed/claude-kit",
+        "docs": "https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki"
+    },
+    "require": {
+        "php": "^8.2",
+        "illuminate/console": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/filesystem": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+        "laravel/prompts": "^0.1 || ^0.2 || ^0.3",
+        "laravel/pint": "^1.20",
+        "larastan/larastan": "^3.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "pestphp/pest": "^3.0 || ^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0 || ^4.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0 || ^10.0"
+    },
+    "suggest": {
+        "laravel/boost": "Adds the Laravel Boost MCP server that claude-kit wires into .mcp.json."
+    },
+    "autoload": {
+        "psr-4": {
+            "MohamedAshrafElsaed\\ClaudeKit\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MohamedAshrafElsaed\\ClaudeKit\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "lint": "pint",
+        "lint:check": "pint --test",
+        "types:check": "phpstan analyse --no-progress",
+        "test": "pest --compact",
+        "test:coverage": "pest --coverage --min=80 --compact",
+        "check": [
+            "@lint:check",
+            "@types:check",
+            "@test"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MohamedAshrafElsaed\\ClaudeKit\\ClaudeKitServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

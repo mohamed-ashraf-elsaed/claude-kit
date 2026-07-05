@@ -1,0 +1,14 @@
+# PHPStan / Larastan configuration.
+# Level 7 + strict-rules + larastan come from the claude-kit base config in
+# vendor/ (so `composer update` keeps the rules current). Only local `paths:`
+# live here — adjust them to match your application.
+includes:
+    - vendor/mohamed-ashraf-elsaed/claude-kit/runtime/phpstan/base.neon
+
+parameters:
+    paths:
+        - app/
+        - bootstrap/app.php
+        - config/
+        - database/
+        - routes/

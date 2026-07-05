@@ -1,0 +1,146 @@
+# {{PROJECT_NAME}} Engineering Rules
+
+These rules are NON-NEGOTIABLE and OVERRIDE any conflicting default behavior.
+They are enforced both socially (this document) and mechanically (PHPStan level
+7, the Pest architecture suite in `tests/Arch`, and the Stop quality-gate hook
+from `mohamed-ashraf-elsaed/claude-kit`).
+
+> Scaffolded by [`mohamed-ashraf-elsaed/claude-kit`](https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit).
+> Sections marked `TODO` are placeholders — fill them in with your project's
+> specifics, then delete this note.
+
+## 1. How you must work (mindset)
+
+- **Never over-engineer.** Build the smallest correct thing that satisfies the
+  stated requirement. No speculative abstraction, no "framework for the future",
+  no patterns added "just in case". If a requirement is not stated, it does not
+  exist yet.
+- **Simple and readable above all.** Prefer the most straightforward solution a
+  new developer could read top-to-bottom and understand. Clarity beats
+  cleverness. Short methods, intention-revealing names, early returns, no
+  needless indirection.
+- **Follow SOLID.** Single responsibility per class/method; depend on
+  abstractions at boundaries, not concretions; small, focused interfaces. SOLID
+  serves readability — it is never an excuse to over-engineer.
+- **Never assume.** Do not guess file paths, column names, API shapes, or
+  package behavior. Verify against the actual code, database schema, or official
+  docs before acting.
+- **Always ask.** When a decision is genuinely ambiguous or has consequential
+  trade-offs (data model, dependency, breaking change, irreversible action),
+  stop and ask rather than picking a path silently.
+- **Validate everything — logically and technically.** Every change must be
+  reasoned through AND proven (tests pass, PHPStan is clean, coverage holds). A
+  change is not "done" until it is verified.
+
+## 2. Architecture: MVC + Service layer + Data objects
+
+Strict separation of concerns. Each layer has ONE job:
+
+- **Controllers** (`app/Http/Controllers`) — thin. Accept a validated request,
+  delegate to a Service or Action, return a response. NO business logic, NO
+  direct DB/Eloquent queries, NO data shaping beyond passing DTOs.
+- **Form Requests** (`app/Http/Requests`) — all input validation lives here.
+- **Services** (`app/Services`) — business logic and orchestration. `final`
+  classes, suffixed `Service`. Stateless where possible; injected via the
+  container with **constructor dependency injection** (never `app()`/`resolve()`
+  inside the class).
+- **Actions** (`app/Actions`) — single-purpose units of work. `final`, suffixed
+  `Action`, with **exactly one public `__invoke()` method**.
+- **Data Objects** (`app/Data`) — immutable, hard-typed DTOs that move data
+  between layers. `final readonly` classes, suffixed `Data`. NO behavior beyond
+  construction/transformation. Prefer these over passing arrays.
+- **Models** (`app/Models`) — persistence + relationships + casts only. No
+  business logic.
+- **Contracts** (`app/Contracts`) — interfaces for swappable collaborators at
+  system boundaries. Depend on the interface, bind the concrete `final`
+  implementation in a service provider.
+
+## 3. Hard typing (enforced)
+
+- Every PHP file declares `declare(strict_types=1);`.
+- Every parameter, property, and return value is explicitly typed. No untyped
+  arrays where a DTO fits; document array shapes in PHPDoc when unavoidable.
+- PHPStan (Larastan) runs at **level 7** with **`phpstan-strict-rules`** and
+  MUST report **zero** errors.
+- Enable Eloquent strict mode (`Model::shouldBeStrict()`); never rely on lazy
+  loading or silently-discarded attributes.
+
+## 4. Testing, coverage & the quality gate (enforced)
+
+- Tests are written in **Pest**. Most are feature tests.
+- Code coverage must be **≥ 80%** (`--min=80`). New code ships with tests.
+- **One shared gate, three places.** `vendor/mohamed-ashraf-elsaed/claude-kit/runtime/quality-checks.sh`
+  is the single source of truth and runs the full suite — PHP (Pint, PHPStan
+  level 7 + strict-rules, Pest + 80% coverage) and any configured frontend
+  checks. It is invoked by the local git pre-commit hook, Claude's Stop hook,
+  and CI.
+- Coverage requires the `pcov` (or Xdebug) PHP extension; without it the gate
+  warns instead of blocking on coverage only.
+
+### Frontend
+
+{{FRONTEND_RULES}}
+
+## 5. What this project is (product context)
+
+> **TODO:** Describe the product in a few sentences — what it does, who it is
+> for, and any domain rules or multi-tenant/ownership isolation that every
+> feature must respect.
+
+## 6. Integrations & external services
+
+> **TODO:** List the external services, APIs, and providers this project depends
+> on (payment, storage, AI, mail, ...) and any non-obvious rules for using them.
+> Delete this section if there are none. Never commit API keys — they live only
+> in `.env`.
+
+## 7. Feature documentation (MANDATORY — enforced)
+
+Every feature and every bug fix MUST be documented in the `features/`
+directory. This is enforced by the Stop quality-gate hook: if code under `app/`,
+`database/`, `routes/`, or `resources/js/` changes and no matching doc under
+`features/<name>/` is added or updated, **the turn is blocked.**
+
+- **One folder per feature:** `features/<feature-name>/` (kebab-case), always
+  containing **both** `FEATURE.md` and `DEPLOY.md`. Copy the canonical format
+  from `features/_TEMPLATE/`.
+- **`FEATURE.md`** describes the full feature: summary, business logic & rules,
+  the request/user flow, what it calls (routes → controller → service/action →
+  jobs/events → models), the responses/DTOs/pages it returns, the data model +
+  isolation key, dependencies, and the tests covering it.
+- **`DEPLOY.md`** describes every deploy action the feature needs — migrations,
+  seeders, env/config, queues — in run order. If none are needed it must say
+  "No deploy steps required."
+- **Bug fixes / changes** append an entry to the relevant feature's `FEATURE.md`
+  **Change Log**, and update its `DEPLOY.md` if the fix needs a deploy step.
+- Write the docs as part of **finalizing** the work, so they reflect what was
+  actually built.
+
+## 8. Code hygiene & quality (hard rules)
+
+- **No dead code — ever.** No commented-out code, unreachable branches, TODO
+  stubs, or "just in case" scaffolding. If it is not used, delete it.
+- **No unused anything.** No unused variables, parameters, imports, methods,
+  properties, classes, routes, or config.
+- **Comments:** code must be self-documenting through good names and small
+  methods. Do not write narrative inline comments that restate the code. Use
+  PHPDoc only where it adds something the signature cannot express — array
+  shapes, generics, `@throws`, or a short note on genuinely non-obvious logic.
+- **Never write an N+1 query.** Always eager-load the relationships you will use
+  (`with(...)`, `load(...)`); lean on `whereHas`, `withCount`, and aggregates
+  instead of looping queries.
+- **Migrations must be optimized and correct.** Pick the narrowest correct
+  column type; index every foreign key and every column used in
+  `where`/`order by`/`join`; use `foreignId()->constrained()` with explicit
+  `cascade`/`restrict`; make migrations reversible (`down()`); never put data
+  backfill in a schema migration.
+- **PHP 8 best practices.** Constructor property promotion, readonly properties,
+  backed enums, first-class callable syntax, named arguments for clarity,
+  `match` over long `switch`, nullsafe operator. Always `declare(strict_types=1)`.
+
+## 9. Deployment & releases
+
+> **TODO:** Describe how this project ships (branch model, CI gate, deploy
+> steps, who can release). Per-feature deploy steps live in each
+> `features/<feature>/DEPLOY.md`. Seeders that run on deploy MUST be idempotent
+> (`firstOrCreate`/`updateOrCreate`) — never a blind `create()`.

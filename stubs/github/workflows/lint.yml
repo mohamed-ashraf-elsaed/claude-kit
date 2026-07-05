@@ -1,0 +1,47 @@
+name: linter
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Lint PHP (Pint)
+        run: composer lint:check
+
+      - name: Static analysis (PHPStan)
+        run: composer types:check
+
+      - name: Setup Node
+        if: ${{ hashFiles('package.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Frontend checks (ESLint, Prettier, types)
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          npm ci
+          npm run lint:check --if-present
+          npm run format:check --if-present
+          npm run types:check --if-present
