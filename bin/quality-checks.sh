@@ -26,8 +26,12 @@ if [ -x vendor/bin/phpstan ] && ! OUT="$(vendor/bin/phpstan analyse --no-progres
     fail "PHPStan (level 7 + strict-rules)" "$OUT"
 fi
 
-if [ -x vendor/bin/pest ] && ! OUT="$(vendor/bin/pest --compact 2>&1)"; then
-    fail "Pest test suite" "$OUT"
+if [ -x vendor/bin/pest ]; then
+    if php -m 2>/dev/null | grep -qiE '^(pcov|xdebug)$'; then
+        OUT="$(vendor/bin/pest --coverage --min=80 --compact 2>&1)" || fail "Pest / coverage < 80%" "$OUT"
+    else
+        OUT="$(vendor/bin/pest --compact 2>&1)" || fail "Pest test suite" "$OUT"
+    fi
 fi
 
 # --- Changelog gate -------------------------------------------------------

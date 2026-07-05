@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-05
+
+### Fixed
+
+- Added test coverage for the interactive installer, the skills.sh integration,
+  and `TestTool`, so the 80% CI coverage gate passes on a tagged release.
+- The repo's own gate (`bin/quality-checks.sh`) now runs Pest with the coverage
+  gate, matching CI.
+
 ## [0.2.0] - 2026-07-05
 
 ### Added
@@ -60,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Actions workflows.
 - Idempotent, non-destructive `composer.json` / `package.json` mergers.
 
-[Unreleased]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/mohamed-ashraf-elsaed/claude-kit/releases/tag/v0.1.0
