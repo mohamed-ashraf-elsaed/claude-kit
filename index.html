@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>claude-kit — Set up Claude Code + a quality gate for Laravel in one command</title>
+<meta name="description" content="claude-kit is a Composer package that sets up Claude Code (and any AI coding agent) on a Laravel project in one command: engineering rules, a quality gate (PHPStan, Pint, Pest), skills, git hooks, and stack-aware frontend tooling.">
+<meta name="keywords" content="Laravel, Claude Code, Cursor, GitHub Copilot, AI coding agent, PHPStan, Larastan, Pint, Pest, quality gate, code quality, static analysis, MCP, Anthropic, developer tools">
+<link rel="canonical" href="https://mohamed-ashraf-elsaed.github.io/claude-kit/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="claude-kit — Claude Code + quality gate for Laravel, in one command">
+<meta property="og:description" content="Engineering rules, PHPStan · Pint · Pest, skills, git hooks, and stack-aware frontend tooling — installed with one command.">
+<meta property="og:url" content="https://mohamed-ashraf-elsaed.github.io/claude-kit/">
+<meta property="og:image" content="https://raw.githubusercontent.com/mohamed-ashraf-elsaed/claude-kit/main/.github/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="claude-kit — Claude Code + quality gate for Laravel">
+<meta name="twitter:description" content="One command: engineering rules, PHPStan · Pint · Pest, skills, git hooks, stack-aware frontend tooling.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/mohamed-ashraf-elsaed/claude-kit/main/.github/social-preview.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "claude-kit",
+  "description": "A Composer package that sets up Claude Code (and any AI coding agent) on a Laravel project in one command: engineering rules, a quality gate (PHPStan, Pint, Pest), skills, git hooks, and stack-aware frontend tooling.",
+  "url": "https://mohamed-ashraf-elsaed.github.io/claude-kit/",
+  "codeRepository": "https://github.com/mohamed-ashraf-elsaed/claude-kit",
+  "downloadUrl": "https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit",
+  "programmingLanguage": "PHP",
+  "runtimePlatform": "Laravel",
+  "license": "https://opensource.org/licenses/MIT",
+  "keywords": "Laravel, Claude Code, Cursor, GitHub Copilot, AI coding agent, PHPStan, Pint, Pest, quality gate, MCP",
+  "author": { "@type": "Person", "name": "Mohamed Elsaed" }
+}
+</script>
+<style>
+  :root { --indigo:#6366f1; --indigo-d:#4338ca; --ink:#0f1222; --muted:#5b6178; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); line-height:1.6; }
+  a { color:var(--indigo-d); }
+  .hero { background:linear-gradient(135deg,#4338ca,#6366f1 55%,#7c3aed); color:#fff; padding:88px 24px 72px; text-align:center; }
+  .hero .kicker { letter-spacing:5px; text-transform:uppercase; font-weight:700; opacity:.85; font-size:14px; }
+  .hero h1 { font-size:76px; font-weight:800; letter-spacing:-2px; margin:10px 0 14px; }
+  .hero p { font-size:23px; max-width:760px; margin:0 auto 30px; opacity:.96; }
+  .cmd { display:inline-block; font-family:ui-monospace,Menlo,Consolas,monospace; background:rgba(0,0,0,.28); color:#fff; padding:14px 22px; border-radius:12px; font-size:17px; }
+  .btns { margin-top:28px; display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .btn { background:#fff; color:var(--indigo-d); text-decoration:none; font-weight:700; padding:13px 24px; border-radius:10px; }
+  .btn.ghost { background:rgba(255,255,255,.14); color:#fff; }
+  .wrap { max-width:940px; margin:0 auto; padding:64px 24px; }
+  h2 { font-size:30px; margin:0 0 24px; letter-spacing:-.5px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+  .card { border:1px solid #ecedf3; border-radius:14px; padding:22px; }
+  .card h3 { font-size:18px; margin:0 0 8px; }
+  .card p { color:var(--muted); font-size:15px; }
+  ul.feat { list-style:none; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
+  ul.feat li { padding-left:26px; position:relative; color:#2b3040; }
+  ul.feat li::before { content:"✓"; color:#22c55e; font-weight:800; position:absolute; left:0; }
+  footer { border-top:1px solid #ecedf3; text-align:center; padding:36px 24px; color:var(--muted); font-size:14px; }
+  footer a { margin:0 8px; }
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="kicker">Laravel · Claude Code</div>
+    <h1>claude-kit</h1>
+    <p>Set up <strong>Claude Code</strong> — and any AI coding agent — on a Laravel project in one command. Engineering rules, a quality gate, skills, and stack-aware frontend tooling.</p>
+    <div class="cmd">$ composer require --dev mohamed-ashraf-elsaed/claude-kit</div>
+    <div class="btns">
+      <a class="btn" href="https://github.com/mohamed-ashraf-elsaed/claude-kit">GitHub</a>
+      <a class="btn ghost" href="https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit">Packagist</a>
+      <a class="btn ghost" href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki">Docs</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>What it installs</h2>
+      <ul class="feat">
+        <li>Engineering rules (CLAUDE.md)</li>
+        <li>Quality gate: PHPStan · Pint · Pest</li>
+        <li>Claude Code skills</li>
+        <li>Git pre-commit + Stop hooks</li>
+        <li>Feature-doc scaffolding</li>
+        <li>Stack-aware frontend tooling</li>
+      </ul>
+    </section>
+
+    <section style="margin-top:56px;">
+      <h2>Why claude-kit</h2>
+      <div class="grid">
+        <div class="card"><h3>One command</h3><p>Interactive installer: choose Pint, PHPStan level, test runner &amp; coverage, hooks, skills, and extras — nothing forced.</p></div>
+        <div class="card"><h3>One gate, everywhere</h3><p>The same checks run at commit time, at the end of every Claude turn, and in CI — so guardrails can't be skipped.</p></div>
+        <div class="card"><h3>Hybrid updates</h3><p>Machinery auto-updates via <code>composer update</code>; the rules and configs are copied into your repo so you own them.</p></div>
+        <div class="card"><h3>Any agent</h3><p>Built for Claude Code; the rules and quality gate work with Cursor, GitHub Copilot, or any AI coding agent.</p></div>
+      </div>
+    </section>
+
+    <section style="margin-top:56px;">
+      <h2>Get started</h2>
+      <p><a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Installation">Installation</a> ·
+         <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Usage">Usage</a> ·
+         <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/Quality-Gate">Quality gate</a> ·
+         <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki/FAQ">FAQ</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit">GitHub</a> ·
+      <a href="https://packagist.org/packages/mohamed-ashraf-elsaed/claude-kit">Packagist</a> ·
+      <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki">Docs</a> ·
+      <a href="https://github.com/mohamed-ashraf-elsaed/claude-kit/blob/main/CHANGELOG.md">Changelog</a>
+    </div>
+    <div style="margin-top:10px;">MIT © Mohamed Elsaed · Requires PHP 8.2+ and Laravel 11/12/13</div>
+  </footer>
+</body>
+</html>
