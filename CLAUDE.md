@@ -31,19 +31,20 @@ src/
   Commands/InstallCommand.php      `claude-kit:install` — prompts + flags, THIN
   Support/
     FrontendStack.php              Enum: per-stack skills/scripts/deps/config/prose
-    Part.php                       Enum: installable parts (claude,rules,quality,frontend,docs,ci)
+    TestTool.php                   Enum: Pest | PHPUnit
+    InstallOptions.php             Readonly DTO: every resolved choice + defaults()
     StackDetector.php              Detects the stack from composer.json + package.json
     Installer.php                  The workhorse — pure filesystem, no shell-outs
+    SkillInstaller.php             Wraps `npx skills find/add` (skills.sh)
     PackageJsonMerger.php          Idempotent, non-destructive package.json merge
     ComposerJsonMerger.php         Idempotent, non-destructive composer.json merge
 runtime/                           REFERENCED from vendor/ in host projects (auto-update)
-  quality-checks.sh                Host gate: PHP + conditional frontend
+  quality-checks.sh                Host gate: Pint/PHPStan (presence) + tests (manifest) + frontend
   hooks/stop-validate.sh           Host Stop hook: gate + feature-doc requirement
-  phpstan/base.neon                level 7 + strict-rules + larastan (relative includes)
 stubs/                             PUBLISHED (copied) into host projects
-  claude/{settings.json, skills/**}
+  claude/skills/**                 (settings.json is GENERATED, not a stub)
   CLAUDE.md.stub                   Generic host rules with {{PROJECT_NAME}}/{{FRONTEND_RULES}}
-  phpstan.neon.stub  pint.json.stub  tests/Arch/ArchTest.php.stub
+  pint.json.stub  tests/Arch/ArchTest.php.stub   (phpstan.neon is GENERATED)
   githooks/pre-commit  editorconfig  gitattributes
   features/{_TEMPLATE/*, README.md}
   github/workflows/{tests,lint}.yml   (host CI — NOT this repo's CI)
@@ -60,9 +61,8 @@ bin/quality-checks.sh              THIS repo's own gate (Pint/PHPStan/Pest + cha
 - **`runtime/` is referenced, not copied.** Host projects call it at
   `vendor/mohamed-ashraf-elsaed/claude-kit/runtime/...`, so a `composer update`
   propagates fixes everywhere. Changing a runtime file changes behavior for
-  every consumer — treat it as an API. The host `phpstan.neon` and hooks point
-  into this path; `base.neon`'s `../../../../` includes assume that exact vendor
-  depth — do not move it.
+  every consumer — treat it as an API. The host hooks and the generated
+  `phpstan.neon` reference vendor paths; keep them stable.
 - **`stubs/` is published (copied) once.** Consumers own their copy; we cannot
   push updates to an already-installed stub except via `install --force`. So put
   *machinery* in `runtime/` and *content/opinion* in `stubs/`.
@@ -70,18 +70,26 @@ bin/quality-checks.sh              THIS repo's own gate (Pint/PHPStan/Pest + cha
 ## How the installer works (don't re-derive)
 
 `InstallCommand` (thin) resolves the stack (`--stack` flag → else `StackDetector`
-→ else interactive `select`) and the parts (`--parts` → else all → else
-`multiselect`), then delegates to `Installer::run($parts, $stack, $force, $projectName)`.
+→ else `select`), then builds an **`InstallOptions`** — interactively via
+`promptOptions()` (Pint? PHPStan?+level+strict, tests?+runner+coverage+arch,
+hooks, skills, extras) or via `InstallOptions::defaults()` when non-interactive.
+It hands that to `Installer::run($options, $projectName)`, then optionally runs
+the skills.sh finder (`SkillInstaller`) and wires the git hook.
 
 `Installer` is **pure filesystem** (testable against a temp dir):
-- `copyStub` / `copyTree` write files, skipping existing ones unless `--force`,
+- Generates `.claude/settings.json` (Stop hook + allowlist reflect the choices),
+  `phpstan.neon` (chosen level + strict toggle), and the `.claude-kit.json`
+  manifest (test runner, coverage, feature-docs) that the runtime gate reads.
+- `copyStub` / `copyTree` write files, skipping existing ones unless `force`,
   applying `{{PLACEHOLDER}}` replacements; every write is recorded as
   created/overwritten/skipped and returned as the report.
 - Frontend + composer changes go through the two mergers, which **preserve
-  existing keys** (existing wins) and are **idempotent** — re-running changes nothing.
+  existing keys** and are **idempotent**.
 - `FrontendStack` is the one place per-stack differences live (skills, npm
   scripts, devDependencies, stub directory, CLAUDE.md prose). Add a stack by
   extending this enum + adding `stubs/frontend/<dir>/`.
+- The runtime gate runs Pint/PHPStan when their config files exist and tests per
+  the manifest — so what the user selected is exactly what runs.
 
 ## Working here — commands
 
@@ -119,9 +127,11 @@ Packagist updates automatically from the tag.
 
 ## Current state
 
-- v0.1.0 scaffolded and green: install command, 4 stacks, hybrid runtime/stubs,
-  idempotent mergers, full test suite (Unit + Feature), CI (tests/lint/release),
-  and all community-health docs. See `CHANGELOG.md` for the authoritative status.
+- v0.2.0: fully interactive installer (Pint/PHPStan+level/tests+runner+coverage/
+  hooks/skills/extras), skills.sh finder, generated `phpstan.neon` +
+  `.claude/settings.json`, `.claude-kit.json` manifest, manifest-driven gate.
+  4 stacks, hybrid runtime/stubs, idempotent mergers, full test suite, CI
+  (tests/lint/release). See `CHANGELOG.md` for the authoritative status.
 
 ## Pointers
 

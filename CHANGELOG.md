@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-05
+
+### Added
+
+- **Fully interactive installer.** `claude-kit:install` now asks what you want
+  instead of scaffolding a fixed set: Pint on/off; PHPStan on/off + level (0–9) +
+  strict-rules on/off; a test gate on/off + runner (Pest/PHPUnit) + coverage
+  minimum + architecture tests; which hooks enforce the gate (Claude Stop, git
+  pre-commit, feature-docs); which bundled skills to install; and which extras
+  (CLAUDE.md, feature docs, editorconfig, MCP, CI).
+- **skills.sh integration.** Optionally search and install additional skills via
+  the `npx skills find` / `npx skills add` CLI, guarded by an `npx` availability
+  check.
+- `.claude-kit.json` manifest recording the chosen test runner, coverage
+  threshold, and feature-doc toggle; the runtime gate reads it.
+- `InstallOptions` DTO and `TestTool` enum capturing the resolved configuration.
+
+### Changed
+
+- `phpstan.neon` is now **generated** with the chosen level and strict-rules
+  toggle (instead of copied), so PHPStan config reflects your selection.
+- `quality-checks.sh` is now selection-aware: Pint/PHPStan run when their config
+  exists, tests run per the manifest (runner + coverage), and the frontend block
+  is unchanged (script-presence based).
+- `.claude/settings.json` is generated: the Stop hook and permission allowlist
+  reflect the selected hooks and tools.
+
+### Removed
+
+- The `--parts` flag (replaced by interactive selection) and the static
+  `phpstan.neon`/`settings.json` stubs and vendored `phpstan/base.neon` (now
+  generated).
+
 ## [0.1.0] - 2026-07-05
 
 ### Added
@@ -27,5 +60,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Actions workflows.
 - Idempotent, non-destructive `composer.json` / `package.json` mergers.
 
-[Unreleased]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/mohamed-ashraf-elsaed/claude-kit/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/mohamed-ashraf-elsaed/claude-kit/releases/tag/v0.1.0

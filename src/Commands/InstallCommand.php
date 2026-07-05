@@ -9,22 +9,25 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 
+use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
 
 use MohamedAshrafElsaed\ClaudeKit\Support\FrontendStack;
 use MohamedAshrafElsaed\ClaudeKit\Support\Installer;
-use MohamedAshrafElsaed\ClaudeKit\Support\Part;
+use MohamedAshrafElsaed\ClaudeKit\Support\InstallOptions;
+use MohamedAshrafElsaed\ClaudeKit\Support\SkillInstaller;
 use MohamedAshrafElsaed\ClaudeKit\Support\StackDetector;
+use MohamedAshrafElsaed\ClaudeKit\Support\TestTool;
 
 final class InstallCommand extends Command
 {
     protected $signature = 'claude-kit:install
         {--stack= : inertia-vue|inertia-react|blade|none (auto-detected when omitted)}
-        {--parts= : Comma list of parts to install: claude,rules,quality,frontend,docs,ci (default: all)}
         {--force : Overwrite files that already exist}';
 
-    protected $description = 'Scaffold Claude Code rules, hooks, skills, and the quality gate into this Laravel project.';
+    protected $description = 'Interactively configure Claude Code + the quality gate for this Laravel project.';
 
     public function handle(Filesystem $files): int
     {
@@ -42,27 +45,165 @@ final class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        $parts = $this->resolveParts();
         $force = (bool) $this->option('force');
+
+        $options = $this->input->isInteractive()
+            ? $this->promptOptions($files, $stubsPath, $stack, $force)
+            : InstallOptions::defaults($stack, $force);
 
         $this->components->info("Installing claude-kit for a {$stack->label()} project.");
 
         $report = (new Installer($files, $basePath, $stubsPath))->run(
-            $parts,
-            $stack,
-            $force,
+            $options,
             $this->resolveProjectName($files, $basePath),
         );
 
         $this->renderReport($report);
 
-        if (in_array(Part::Quality->value, $parts, true)) {
+        if ($this->input->isInteractive() && confirm('Search skills.sh for additional skills to install?', default: false)) {
+            $this->findAndAddSkills($basePath);
+        }
+
+        if ($options->hasHook('pre-commit')) {
             $this->configureGitHook($basePath);
         }
 
-        $this->printNextSteps($stack, $parts);
+        $this->printNextSteps($options);
 
         return self::SUCCESS;
+    }
+
+    private function promptOptions(Filesystem $files, string $stubsPath, FrontendStack $stack, bool $force): InstallOptions
+    {
+        $pint = confirm('Use Laravel Pint for code style?', default: true);
+
+        $phpstan = confirm('Use PHPStan (Larastan) for static analysis?', default: true);
+        $level = 7;
+        $strict = true;
+
+        if ($phpstan) {
+            $level = (int) select(
+                label: 'Which PHPStan level?',
+                options: array_map('strval', range(0, 9)),
+                default: '7',
+                hint: 'Higher is stricter. 7 is a strong default; 9 is max.',
+            );
+            $strict = confirm('Enable phpstan-strict-rules?', default: true);
+        }
+
+        $tests = confirm('Set up a test gate?', default: true);
+        $tool = TestTool::Pest;
+        $coverage = 80;
+        $arch = false;
+
+        if ($tests) {
+            $tool = TestTool::from(select(
+                label: 'Which test runner?',
+                options: [TestTool::Pest->value => 'Pest', TestTool::PHPUnit->value => 'PHPUnit'],
+                default: TestTool::Pest->value,
+            ));
+            $coverageInput = text(
+                label: 'Minimum coverage % to enforce (blank = do not enforce)',
+                default: '80',
+                validate: fn (string $value): ?string => ($value === '' || ctype_digit($value)) ? null : 'Enter a number or leave blank.',
+            );
+            $coverage = $coverageInput === '' ? null : (int) $coverageInput;
+
+            if ($tool->supportsArchitectureTests()) {
+                $arch = confirm('Add the architecture test suite (tests/Arch)?', default: true);
+            }
+        }
+
+        $hooks = multiselect(
+            label: 'Which hooks should enforce the gate?',
+            options: [
+                'stop' => 'Claude Code Stop hook (runs the gate on every turn)',
+                'pre-commit' => 'Git pre-commit hook',
+                'feature-docs' => 'Feature-doc requirement (part of the Stop hook)',
+            ],
+            default: ['stop', 'pre-commit', 'feature-docs'],
+        );
+
+        $scaffolding = multiselect(
+            label: 'What else should I scaffold?',
+            options: [
+                'rules' => 'CLAUDE.md engineering rules',
+                'docs' => 'Feature-doc templates (features/)',
+                'editorconfig' => '.editorconfig + .gitattributes',
+                'mcp' => 'Laravel Boost MCP (.mcp.json)',
+                'ci' => 'GitHub Actions workflows',
+            ],
+            default: ['rules', 'docs', 'editorconfig', 'mcp', 'ci'],
+        );
+
+        $skills = $this->chooseSkills($files, $stubsPath, $stack);
+
+        return new InstallOptions(
+            stack: $stack,
+            pint: $pint,
+            phpstan: $phpstan,
+            phpstanLevel: $level,
+            phpstanStrict: $strict,
+            tests: $tests,
+            testTool: $tool,
+            coverageMin: $coverage,
+            archTests: $arch,
+            hooks: array_map(strval(...), array_values($hooks)),
+            skills: $skills,
+            scaffolding: array_map(strval(...), array_values($scaffolding)),
+            force: $force,
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function chooseSkills(Filesystem $files, string $stubsPath, FrontendStack $stack): array
+    {
+        $bundled = array_map(
+            static fn (string $dir): string => basename($dir),
+            $files->directories($stubsPath.'/claude/skills'),
+        );
+        sort($bundled);
+
+        /** @var list<string> $selected */
+        $selected = multiselect(
+            label: 'Which bundled skills should I install?',
+            options: array_combine($bundled, $bundled),
+            default: array_values(array_intersect($stack->skills(), $bundled)),
+            hint: 'You can search skills.sh for more in the next step.',
+        );
+
+        return $selected;
+    }
+
+    private function findAndAddSkills(string $basePath): void
+    {
+        $skills = new SkillInstaller($basePath);
+
+        if (! $skills->isAvailable()) {
+            $this->components->warn('`npx` was not found — skipping skills.sh. Install Node.js to use it.');
+
+            return;
+        }
+
+        do {
+            $query = text('Search skills.sh for (blank to stop)');
+
+            if ($query === '') {
+                break;
+            }
+
+            $this->line($skills->find($query));
+
+            $package = text('Package name or GitHub URL to install (blank to skip)');
+
+            if ($package !== '') {
+                $skills->add($package)
+                    ? $this->components->info("Installed skill: {$package}")
+                    : $this->components->error("Failed to install: {$package}");
+            }
+        } while (confirm('Search for another skill?', default: false));
     }
 
     private function resolveStack(Filesystem $files, string $basePath): ?FrontendStack
@@ -92,42 +233,6 @@ final class InstallCommand extends Command
             ),
             default: $detected->value,
         ));
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function resolveParts(): array
-    {
-        $all = Part::values();
-        $option = $this->option('parts');
-
-        if (is_string($option) && $option !== '') {
-            $requested = array_map('trim', explode(',', $option));
-
-            return array_values(array_intersect($all, $requested));
-        }
-
-        if (! $this->input->isInteractive()) {
-            return $all;
-        }
-
-        /** @var list<string> $selected */
-        $selected = multiselect(
-            label: 'Which parts should claude-kit install?',
-            options: array_reduce(
-                Part::cases(),
-                static function (array $carry, Part $part): array {
-                    $carry[$part->value] = $part->label();
-
-                    return $carry;
-                },
-                [],
-            ),
-            default: $all,
-        );
-
-        return $selected;
     }
 
     private function resolveProjectName(Filesystem $files, string $basePath): string
@@ -170,28 +275,24 @@ final class InstallCommand extends Command
         Process::path($basePath)->run('git config core.hooksPath .githooks');
     }
 
-    /**
-     * @param  list<string>  $parts
-     */
-    private function printNextSteps(FrontendStack $stack, array $parts): void
+    private function printNextSteps(InstallOptions $options): void
     {
-        $steps = ['Run `composer install` to install the dev tooling and wire the git pre-commit hook.'];
+        $steps = ['Run `composer install` to install the dev tooling'.($options->hasHook('pre-commit') ? ' and wire the git pre-commit hook.' : '.')];
 
-        if ($stack->hasFrontendTooling() && in_array(Part::Frontend->value, $parts, true)) {
+        if ($options->stack->hasFrontendTooling()) {
             $steps[] = 'Run `npm install` to pull the frontend devDependencies.';
         }
 
-        if (in_array(Part::Rules->value, $parts, true)) {
-            $steps[] = 'Fill in the TODO placeholders in CLAUDE.md (product context, integrations, deployment).';
+        if ($options->wants('rules')) {
+            $steps[] = 'Fill in the TODO placeholders in CLAUDE.md.';
         }
 
-        $steps[] = 'Install a coverage driver (`pcov` or Xdebug) so the 80% gate is enforced.';
+        if ($options->tests && $options->coverageMin !== null) {
+            $steps[] = 'Install a coverage driver (`pcov` or Xdebug) to enforce the '.$options->coverageMin.'% gate.';
+        }
 
         $this->newLine();
         $this->components->info('claude-kit installed. Next steps:');
-
-        foreach ($steps as $step) {
-            $this->components->bulletList([$step]);
-        }
+        $this->components->bulletList($steps);
     }
 }

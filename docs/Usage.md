@@ -3,41 +3,43 @@
 ## The command
 
 ```bash
-php artisan claude-kit:install [--stack=] [--parts=] [--force]
+php artisan claude-kit:install [--stack=] [--force] [--no-interaction]
 ```
 
 | Option | Description |
 | --- | --- |
 | `--stack=` | `inertia-vue`, `inertia-react`, `blade`, or `none`. Auto-detected when omitted. |
-| `--parts=` | Comma list of `claude,rules,quality,frontend,docs,ci`. All when omitted. |
 | `--force` | Overwrite files that already exist (otherwise they are skipped). |
+| `--no-interaction` | Skip the prompts and accept sensible defaults (good for CI). |
 
-Run with no options for the interactive experience: it detects your stack,
-confirms it, and lets you multi-select the parts.
+Run it with no options for the full interactive experience.
 
-## Parts
+## The interactive flow
 
-| Part | Installs |
-| --- | --- |
-| `claude` | `.claude/settings.json`, stack skills, `.mcp.json` |
-| `rules` | `CLAUDE.md` (generic engineering rules with placeholders) |
-| `quality` | `phpstan.neon`, `pint.json`, `tests/Arch/ArchTest.php`, `.githooks/pre-commit`, composer scripts |
-| `frontend` | ESLint/Prettier/TS config + merged `package.json` (skipped for `none`) |
-| `docs` | `features/_TEMPLATE/`, `features/README.md`, `.editorconfig`, `.gitattributes` |
-| `ci` | `.github/workflows/tests.yml` and `lint.yml` |
+The installer walks you through every choice:
 
-## Examples
+1. **Frontend stack** — detected and confirmed (Vue / React / Blade / API-only).
+2. **Code style** — use Pint? (yes/no)
+3. **Static analysis** — use PHPStan? → **level** (0–9) → **strict-rules**?
+4. **Tests** — set up a test gate? → **runner** (Pest / PHPUnit) → **coverage
+   minimum** (a number, or blank to not enforce) → **architecture tests**? (Pest only)
+5. **Hooks** — which of these enforce the gate:
+   - Claude Code Stop hook (runs the gate on every turn)
+   - Git pre-commit hook
+   - Feature-doc requirement (part of the Stop hook)
+6. **Skills** — pick from the bundled skills, then optionally search
+   [skills.sh](https://www.skills.sh) for more (`npx skills find` / `add`).
+7. **Extras** — CLAUDE.md rules, feature-doc templates, `.editorconfig` +
+   `.gitattributes`, Laravel Boost MCP, GitHub Actions workflows.
 
-```bash
-# React project, only the AI config + quality gate + frontend tooling
-php artisan claude-kit:install --stack=inertia-react --parts=claude,quality,frontend
+Your selections are written to `.claude-kit.json`, which the runtime gate reads
+to know which tools to run, the test runner, and the coverage threshold.
 
-# API-only service — no frontend tooling is written
-php artisan claude-kit:install --stack=none
+## Defaults (`--no-interaction`)
 
-# Refresh the skills/rules after upgrading the package
-php artisan claude-kit:install --parts=claude,rules --force
-```
+Pint on; PHPStan on at level 7 with strict-rules; Pest with an 80% coverage gate
+and architecture tests; all three hooks; the stack's default skills; and all
+extras.
 
 ## Re-running & idempotency
 
@@ -47,7 +49,7 @@ overwritten, and running twice changes nothing.
 
 ## After install
 
-1. `composer install` — installs Pint/PHPStan/Pest/Boost and wires the pre-commit hook.
+1. `composer install` — installs the selected tooling and (if chosen) wires the
+   git pre-commit hook.
 2. `npm install` — if a frontend stack was set up.
-3. Open `CLAUDE.md` and fill in the `TODO` placeholders (product context,
-   integrations, deployment).
+3. Open `CLAUDE.md` and fill in the `TODO` placeholders.

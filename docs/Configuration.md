@@ -12,12 +12,35 @@ directly.
 
 Set these in your shell, CI environment, or a hook wrapper.
 
+## The `.claude-kit.json` manifest
+
+The installer writes a small manifest recording your choices; the runtime gate
+reads it to know what to run:
+
+```json
+{
+    "stack": "inertia-vue",
+    "tests": { "enabled": true, "tool": "pest", "coverage_min": 80 },
+    "hooks": { "feature_docs": true }
+}
+```
+
+- `tests.enabled` / `tests.tool` / `tests.coverage_min` — whether the gate runs
+  tests, with which runner, and the coverage threshold (`null` = don't enforce).
+- `hooks.feature_docs` — whether the Stop hook requires a feature doc for watched
+  code changes (the `CLAUDE_KIT_FEATURE_DOCS` env var overrides it).
+
+Edit this file to change the gate's behavior without re-running the installer.
+Pint and PHPStan run whenever `pint.json` / `phpstan.neon` exist, so removing
+those files disables them.
+
 ## Customising the output
 
 - **Rules** — edit `CLAUDE.md`. Fill in the product/integration/deployment
   `TODO`s. This file is yours; the package never overwrites it without `--force`.
-- **PHPStan** — `phpstan.neon` includes the vendored base (level 7 + strict-rules).
-  Add `paths`, `ignoreErrors`, or raise the level in your local file.
+- **PHPStan** — `phpstan.neon` is generated at install time with the level and
+  strict-rules toggle you chose. Edit it freely: change the level, add `paths`,
+  `ignoreErrors`, etc.
 - **Pint** — `pint.json` uses the Laravel preset plus a few strict rules. Adjust freely.
 - **ESLint / Prettier / TypeScript** — the stack config files are yours to edit.
 - **Skills** — everything under `.claude/skills/` is editable; add your own.

@@ -23,6 +23,21 @@ Optional (present in the package, install by editing your selection):
 
 - **socialite-development**, **ai-sdk-development**.
 
+## Finding more skills (skills.sh)
+
+During install, after picking the bundled skills, you can search the
+[skills.sh](https://www.skills.sh) registry for anything else and install it
+without leaving the prompt. Under the hood claude-kit shells out to the Skills
+CLI:
+
+```bash
+npx skills find <query>      # search the registry
+npx skills add <package>     # install into .claude/skills
+```
+
+This requires `npx` (Node.js). If it's not available, the step is skipped with a
+notice — the bundled skills still install.
+
 ## Customising
 
 Everything under `.claude/skills/` is a plain Markdown bundle you own. Edit them,

@@ -1,24 +1,19 @@
 #!/usr/bin/env bash
 #
-# claude-kit Stop hook: enforce the project quality gate when Claude finishes a
-# turn.
+# claude-kit Stop hook: enforce the quality gate when Claude finishes a turn.
 #
-#   1. Full code-quality suite (PHP + frontend) via the sibling
-#      quality-checks.sh: Pint, PHPStan level 7 + strict-rules, Pest + coverage,
-#      and (if configured) ESLint / Prettier / type-check.
-#   2. Feature documentation: any change under app/, database/, routes/, or
-#      resources/js/ must be accompanied by an added/updated doc under
-#      features/<name>/ (excluding the _TEMPLATE/ and README.md scaffolding).
-#      Disable this gate by setting CLAUDE_KIT_FEATURE_DOCS=0.
+#   1. The shared quality suite (Pint / PHPStan / Tests / Frontend) via the
+#      sibling quality-checks.sh.
+#   2. Feature docs: any change under app/, database/, routes/, or resources/js/
+#      must be accompanied by an added/updated doc under features/<name>/.
+#      Controlled by CLAUDE_KIT_FEATURE_DOCS (env) or the .claude-kit.json
+#      manifest (hooks.feature_docs); defaults on.
 #
-# Exit code 2 blocks the stop and feeds stderr back to Claude to fix. This file
-# lives in vendor/ and is referenced (not copied), so `composer update`
-# propagates fixes to every project.
+# Exit code 2 blocks the stop and feeds stderr back to Claude. Lives in vendor/
+# and is referenced, so `composer update` propagates fixes.
 
 set -uo pipefail
 
-# Run against the project root. Claude Code exports CLAUDE_PROJECT_DIR; fall back
-# to the git top level, then the current directory.
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 cd "$PROJECT_DIR" || exit 0
 
@@ -28,16 +23,23 @@ QUALITY="$SCRIPT_DIR/../quality-checks.sh"
 FAILED=0
 REASONS=""
 
-# --- 1. Shared quality suite (PHP + frontend) -----------------------------
-if [ -f "$QUALITY" ]; then
-    if ! OUT="$(bash "$QUALITY" 2>&1)"; then
-        FAILED=1
-        REASONS+=$'\n=== Quality checks failed ===\n'"$OUT"$'\n'
-    fi
+# --- 1. Shared quality suite ----------------------------------------------
+if [ -f "$QUALITY" ] && ! OUT="$(bash "$QUALITY" 2>&1)"; then
+    FAILED=1
+    REASONS+=$'\n=== Quality checks failed ===\n'"$OUT"$'\n'
 fi
 
 # --- 2. Feature documentation gate ----------------------------------------
-if [ "${CLAUDE_KIT_FEATURE_DOCS:-1}" != "0" ] && git rev-parse --verify --quiet HEAD >/dev/null 2>&1; then
+FEATURE_DOCS="${CLAUDE_KIT_FEATURE_DOCS:-}"
+if [ -z "$FEATURE_DOCS" ]; then
+    if [ "$(php -r '$c=@json_decode(@file_get_contents(".claude-kit.json"),true); echo (is_array($c)&&isset($c["hooks"]["feature_docs"])&&$c["hooks"]["feature_docs"]===false)?"0":"1";' 2>/dev/null)" = "0" ]; then
+        FEATURE_DOCS=0
+    else
+        FEATURE_DOCS=1
+    fi
+fi
+
+if [ "$FEATURE_DOCS" != "0" ] && git rev-parse --verify --quiet HEAD >/dev/null 2>&1; then
     CHANGED="$( { git diff HEAD --name-only; git ls-files --others --exclude-standard; } 2>/dev/null | sort -u )"
 
     CODE_CHANGED="$(printf '%s\n' "$CHANGED" | grep -E '^(app|database|routes|resources/js)/' || true)"

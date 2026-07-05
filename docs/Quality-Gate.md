@@ -11,12 +11,14 @@ everywhere:
 
 ## What it runs
 
-**PHP (always, when `app/` and the tools exist):**
+**PHP (based on what you installed):**
 
-- **Pint** (`--test`) — Laravel code style.
-- **PHPStan** — level 7 + strict-rules + Larastan; must be zero errors.
-- **Pest** — with `--coverage --min=80` when a coverage driver is present,
-  otherwise the suite runs and coverage is warned (not enforced).
+- **Pint** (`--test`) — runs when `pint.json` exists.
+- **PHPStan** — runs when `phpstan.neon` exists; the level and strict-rules are
+  whatever you chose at install (they live in that file). Must be zero errors.
+- **Tests** — per `.claude-kit.json`: the chosen runner (Pest / PHPUnit) and, for
+  Pest, `--coverage --min=<your threshold>` when a coverage driver is present
+  (otherwise the suite runs and coverage is warned, not enforced).
 
 **Frontend (only if `package.json` defines the scripts):**
 

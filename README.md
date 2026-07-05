@@ -79,27 +79,36 @@ Existing files are never clobbered — the installer skips them unless you pass
 
 ## Choosing what to install
 
+`claude-kit:install` is a **fully interactive configurator** — it asks what you
+want rather than assuming:
+
+- **Code style:** Pint on/off
+- **Static analysis:** PHPStan on/off → level (0–9) → strict-rules on/off
+- **Tests:** on/off → runner (Pest / PHPUnit) → coverage minimum → architecture tests
+- **Hooks:** Claude Stop hook, git pre-commit hook, feature-doc requirement
+- **Skills:** which bundled skills to install — plus optional search & install of
+  more via [skills.sh](https://www.skills.sh) (`npx skills find` / `add`)
+- **Extras:** CLAUDE.md rules, feature-doc templates, `.editorconfig`, MCP, CI
+
+Your answers are recorded in `.claude-kit.json`, which the quality gate reads.
+
 ```bash
-# Auto-detect the stack, choose parts interactively (default)
-php artisan claude-kit:install
-
-# Non-interactive: pick the stack and a subset of parts
-php artisan claude-kit:install --stack=inertia-react --parts=claude,quality,frontend
-
-# Re-run and overwrite (e.g. to refresh skills after an update)
-php artisan claude-kit:install --force
+php artisan claude-kit:install                      # interactive (recommended)
+php artisan claude-kit:install --stack=inertia-react # preselect the stack
+php artisan claude-kit:install --no-interaction      # accept sensible defaults
+php artisan claude-kit:install --force               # overwrite existing files
 ```
 
 - **Stacks:** `inertia-vue`, `inertia-react`, `blade`, `none`
-- **Parts:** `claude`, `rules`, `quality`, `frontend`, `docs`, `ci`
 
 ## The hybrid update model
 
-- **Machinery** — `quality-checks.sh`, the Stop hook, and the PHPStan base
-  config — lives in `vendor/mohamed-ashraf-elsaed/claude-kit/runtime/` and is
-  *referenced*, so `composer update` propagates fixes to every project automatically.
-- **Content you own** — `CLAUDE.md`, the skills, the feature templates, and the
-  linter configs — is *copied* into your repo so you can customise it freely.
+- **Machinery** — `quality-checks.sh` and the Stop hook — lives in
+  `vendor/mohamed-ashraf-elsaed/claude-kit/runtime/` and is *referenced*, so
+  `composer update` propagates fixes to every project automatically.
+- **Content you own** — `CLAUDE.md`, the skills, the feature templates, the
+  linter configs, and the generated `phpstan.neon` — is written into your repo so
+  you can customise it freely.
 
 ## The quality gate
 
