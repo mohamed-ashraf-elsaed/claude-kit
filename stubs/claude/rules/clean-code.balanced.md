@@ -5,8 +5,8 @@ paths:
 
 <!-- Published by claude-kit: the BALANCED variant of the clean-code rule. The
      other variants are `strict` (hard limits) and `relaxed` (direction without
-     thresholds). Every convention below is a DRAFT: adjust the numbers to your
-     team's real standard, then delete the DRAFT markers. -->
+     thresholds). The numbers below are claude-kit's defaults — adjust them to
+     your team's real standard. -->
 
 # Clean code — balanced
 
@@ -21,7 +21,6 @@ genuinely worse — say so in the pull request, in one line, and move on.
 | Nesting depth | 3 |
 | `else` | allowed for a genuine two-way branch |
 
-<!-- DRAFT -->
 ## Size
 
 - Aim for method bodies under **40 lines**. Past that, look for a private method
@@ -31,7 +30,6 @@ genuinely worse — say so in the pull request, in one line, and move on.
   responsibilities, not an automatic failure.
 - One class, interface, enum, or trait per file.
 
-<!-- DRAFT -->
 ## Control flow
 
 - Handle the exceptional cases first with guard clauses and return early; keep
@@ -42,7 +40,6 @@ genuinely worse — say so in the pull request, in one line, and move on.
   its own method.
 - `match` over `switch` for value mapping.
 
-<!-- DRAFT -->
 ## Signatures
 
 - Up to **5 parameters**. Beyond that, group the related ones into one typed
@@ -52,7 +49,6 @@ genuinely worse — say so in the pull request, in one line, and move on.
 - Every parameter, property, and return value is explicitly typed. `array`
   carries a PHPDoc shape when the shape matters.
 
-<!-- DRAFT -->
 ## Naming
 
 - Full words over abbreviations: `$invoiceTotal`, not `$invTot`. `$data`,
@@ -61,7 +57,6 @@ genuinely worse — say so in the pull request, in one line, and move on.
 - Commands are verbs (`archive()`); queries are nouns or questions
   (`archivedAt()`, `isArchived()`). Prefer not to mix the two in one method.
 
-<!-- DRAFT -->
 ## What must not exist
 
 - Commented-out code, unreachable branches, unused variables, parameters,

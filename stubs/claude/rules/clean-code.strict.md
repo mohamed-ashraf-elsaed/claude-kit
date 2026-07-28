@@ -5,8 +5,8 @@ paths:
 
 <!-- Published by claude-kit: the STRICT variant of the clean-code rule. The
      other variants are `balanced` (limits with escape hatches) and `relaxed`
-     (direction without thresholds). Every convention below is a DRAFT: adjust
-     the numbers to your team's real standard, then delete the DRAFT markers. -->
+     (direction without thresholds). The numbers below are claude-kit's
+     defaults — adjust them to your team's real standard. -->
 
 # Clean code — strict
 
@@ -21,7 +21,6 @@ not the limit.
 | Nesting depth | 2 |
 | `else` | not used |
 
-<!-- DRAFT -->
 ## Size
 
 - A method body is at most **20 lines**, excluding the signature and the closing
@@ -30,7 +29,6 @@ not the limit.
   responsibility; split it.
 - A file holds exactly one class, interface, enum, or trait.
 
-<!-- DRAFT -->
 ## Control flow
 
 - **Guard clauses only.** Validate, then return or throw at the top. The happy
@@ -40,7 +38,6 @@ not the limit.
   inner block is a method.
 - `match` over `switch`. A `switch` on a type is a missing polymorphic call.
 
-<!-- DRAFT -->
 ## Signatures
 
 - At most **3 parameters**. Beyond that, pass one typed object.
@@ -51,7 +48,6 @@ not the limit.
 - No optional parameters with a default that changes behaviour; make the two
   behaviours two methods.
 
-<!-- DRAFT -->
 ## Naming
 
 - Names say what a thing is or does, in full words: `$subscriptionRenewalDate`,
@@ -62,7 +58,6 @@ not the limit.
   nouns or questions (`totalDue()`, `isPaid()`). A method never does both.
 - No abbreviations except established domain terms (`vat`, `sku`, `url`).
 
-<!-- DRAFT -->
 ## What must not exist
 
 - Commented-out code, unreachable branches, `TODO` stubs with no owner, unused

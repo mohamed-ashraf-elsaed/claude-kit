@@ -4,9 +4,9 @@ paths:
 ---
 
 <!-- Published by claude-kit: the RELAXED variant of the clean-code rule. The
-     other variants are `strict` (hard limits) and `balanced` (limits with
-     escape hatches). Every convention below is a DRAFT: adjust it to your
-     team's real standard, then delete the DRAFT markers. -->
+     other variants are `strict` (hard limits) and `balanced` (limits with escape
+     hatches). This variant sets no thresholds on purpose — adjust the guidance
+     to your team's real standard. -->
 
 # Clean code — relaxed
 
@@ -21,7 +21,6 @@ method top to bottom and predict what it does.
 | Nesting depth | no limit — flatten when you lose track of the condition |
 | `else` | allowed |
 
-<!-- DRAFT -->
 ## Direction
 
 - A method should do one thing at one level of abstraction. When you find
@@ -32,7 +31,6 @@ method top to bottom and predict what it does.
 - When a parameter list stops being self-explanatory at the call site, pass an
   object or use named arguments.
 
-<!-- DRAFT -->
 ## Readability first
 
 - Return early for error and edge cases so the main path stays at the top level.
@@ -42,7 +40,6 @@ method top to bottom and predict what it does.
   renaming; a short `$i` in a tight loop is not a problem.
 - `bool` accessors read as questions (`isActive()`, `hasCredit()`).
 
-<!-- DRAFT -->
 ## Still not negotiable
 
 - No commented-out code and no unreachable branches — delete them, git remembers.

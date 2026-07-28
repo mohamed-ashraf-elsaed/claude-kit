@@ -1,14 +1,12 @@
 <!-- Published by claude-kit. Always loaded — no `paths` frontmatter, because it
-     describes a workflow rather than a class of files. Every convention below is
-     a DRAFT: this is a starting convention, not your team's — correct it, then
-     delete the DRAFT markers. -->
+     describes a workflow rather than a class of files.
+     This is claude-kit's default convention; adapt it to your team's. -->
 
 # Parallel work with git worktrees
 
 Two features in flight at once get two worktrees, not one branch you keep
 stashing. Each worktree is a full checkout sharing this repository's history.
 
-<!-- DRAFT -->
 ## Layout
 
 - One worktree per branch, created from an up-to-date default branch:
@@ -22,7 +20,6 @@ stashing. Each worktree is a full checkout sharing this repository's history.
 - One task per worktree. Do not start a second feature in a worktree that
   already has uncommitted work.
 
-<!-- DRAFT -->
 ## Setting one up
 
 - `composer install` and `npm install` per worktree: `vendor/` and
@@ -35,7 +32,6 @@ stashing. Each worktree is a full checkout sharing this repository's history.
 - Run the quality gate inside the worktree you changed. It reads the config of
   the checkout it runs in.
 
-<!-- DRAFT -->
 ## Finishing up
 
 - Push the branch and open the pull request from the worktree.
@@ -47,7 +43,6 @@ stashing. Each worktree is a full checkout sharing this repository's history.
 - Never delete a worktree directory by hand — that leaves a stale entry in
   `.git/worktrees` that breaks the next `git worktree add` for the same path.
 
-<!-- DRAFT -->
 ## What not to share between worktrees
 
 Migrations against a shared database, a shared queue connection consumed by two

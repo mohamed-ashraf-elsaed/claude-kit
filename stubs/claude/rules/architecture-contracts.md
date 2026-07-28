@@ -3,16 +3,16 @@ paths:
   - "app/**/*.php"
 ---
 
-<!-- Published by claude-kit because this project selected Contracts. Every
-     convention below is a DRAFT: check it against how this codebase actually
-     works, correct it, then delete the DRAFT markers. -->
+<!-- Published by claude-kit because this project selected Contracts.
+     These are claude-kit's opinionated defaults, not a description of your
+     codebase: read them, adapt anything that does not match how you actually
+     work, and delete what you do not want. -->
 
 # Contracts (`app/Contracts`)
 
 Interfaces for the places where this application meets something it does not
 control.
 
-<!-- DRAFT -->
 ## When to add one
 
 - Add a contract for a genuine boundary: a payment gateway, an SMS provider, a
@@ -22,7 +22,6 @@ control.
   never be swapped. A `final` class is the default; an interface is a decision
   you justify.
 
-<!-- DRAFT -->
 ## Shape
 
 - Interfaces only in `app/Contracts` — no abstract classes, no traits, no
@@ -35,7 +34,6 @@ control.
 - Every method is fully typed, including the return type. Return a value object
   or a data object rather than an untyped array.
 
-<!-- DRAFT -->
 ## Wiring
 
 - Bind the concrete implementation in a service provider

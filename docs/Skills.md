@@ -64,7 +64,7 @@ Rules are conventions that load **without being invoked** — either every sessi
 | `worktrees.md` | always loaded |
 
 > [!IMPORTANT]
-> Every convention claude-kit authors ships marked `<!-- DRAFT -->`. They are a strong starting point, not your team's standard — read them, correct them, then delete the markers.
+> These conventions are claude-kit's opinionated defaults, not a description of your codebase. They are a strong starting point, not your team's standard — read them, adapt what does not fit, and delete what you do not want.
 
 ## Review agents
 

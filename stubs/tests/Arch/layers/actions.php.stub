@@ -3,4 +3,5 @@ arch('single-purpose actions are final, suffixed and invokable')
     ->toBeClasses()
     ->toBeFinal()
     ->toHaveSuffix('Action')
-    ->toHaveMethod('__invoke');
+    ->toHaveMethod('__invoke')
+    ->not->toHavePublicMethodsBesides(['__construct', '__invoke']);

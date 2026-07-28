@@ -4,9 +4,9 @@ paths:
 ---
 
 <!-- Published by claude-kit because this project selected the Actions layer.
-     Sections marked DRAFT are a starting point: check them against how this
-     codebase actually works, correct them, then delete the DRAFT markers. The
-     unmarked section below is a settled decision, not a draft. -->
+     These are claude-kit's opinionated defaults, not a description of your
+     codebase: read them, adapt anything that does not match how you actually
+     work, and delete what you do not want. -->
 
 # Actions (`app/Actions`)
 
@@ -22,7 +22,6 @@ names.
 Everything else in the class is private. The architecture test suite enforces
 this, so a second public method fails the gate.
 
-<!-- DRAFT -->
 ## Shape
 
 - `final class`, suffixed `Action` (`CancelSubscriptionAction`), in
@@ -30,7 +29,6 @@ this, so a second public method fails the gate.
 - `__invoke()` returns the result the caller needs — the created model, the
   computed value — rather than `void` plus a follow-up query.
 
-<!-- DRAFT -->
 ## Scope
 
 - One business operation per action, named as a verb phrase. If the name needs
@@ -38,7 +36,6 @@ this, so a second public method fails the gate.
 - Arguments are typed values or models, never a raw `array` of request input.
 - Collaborators arrive through the constructor; the container resolves them.
 
-<!-- DRAFT -->
 ## Composition
 
 - An action may call other actions and services. Nothing calls an action from

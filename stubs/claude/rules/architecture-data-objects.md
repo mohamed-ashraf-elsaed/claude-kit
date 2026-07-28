@@ -4,15 +4,15 @@ paths:
 ---
 
 <!-- Published by claude-kit because this project selected Data Objects (DTOs).
-     Every convention below is a DRAFT: check it against how this codebase
-     actually works, correct it, then delete the DRAFT markers. -->
+     These are claude-kit's opinionated defaults, not a description of your
+     codebase: read them, adapt anything that does not match how you actually
+     work, and delete what you do not want. -->
 
 # Data Objects (`app/Data`)
 
 Typed structures that carry data across a boundary, so a signature says what it
 receives instead of `array $data`.
 
-<!-- DRAFT -->
 ## Shape
 
 - `final readonly class`, suffixed `Data` (`CheckoutData`), in `app/Data`.
@@ -22,7 +22,6 @@ receives instead of `array $data`.
 - Nullable only when the absence of the value is meaningful — not as a way to
   avoid deciding.
 
-<!-- DRAFT -->
 ## Construction
 
 - Named constructors describe the source: `fromRequest()`, `fromModel()`,
@@ -31,14 +30,12 @@ receives instead of `array $data`.
 - A data object never validates input. Validation happened in the form request
   before it was built.
 
-<!-- DRAFT -->
 ## Behaviour
 
 - Mapping and derivation only: `toArray()`, `withQuantity()`, a computed total.
 - No database access, no facades, no dispatching, no HTTP.
 - Immutable: a change returns a new instance (`with*()`), it never mutates.
 
-<!-- DRAFT -->
 ## Use
 
 - Prefer a data object over an associative array whenever data crosses a layer

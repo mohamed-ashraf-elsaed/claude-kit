@@ -1,18 +1,15 @@
 <!-- Published by claude-kit. Always loaded — no `paths` frontmatter, because it
-     applies to every change in every directory. Every convention below is a
-     DRAFT: adjust it to your team's real standard, then delete the DRAFT
-     markers. -->
+     applies to every change in every directory.
+     This is claude-kit's default convention; adapt it to your team's. -->
 
 # Build the smallest thing that satisfies the requirement
 
-<!-- DRAFT -->
 ## The rule
 
 Implement what was asked, at the size it was asked for. A requirement that has
 not been stated does not exist yet. If you believe something extra is genuinely
 required, say so and ask — do not build it and mention it afterwards.
 
-<!-- DRAFT -->
 ## Do not add these unless a stated requirement needs them
 
 - An interface, abstract class, or trait with exactly one implementation or one
@@ -27,7 +24,6 @@ required, say so and ask — do not build it and mention it afterwards.
   arrays "for later".
 - A new dependency where the framework or PHP standard library already covers it.
 
-<!-- DRAFT -->
 ## Prefer
 
 - A `final` class over an interface plus an implementation.
@@ -36,7 +32,6 @@ required, say so and ask — do not build it and mention it afterwards.
   third occurrence, when the shape is actually known.
 - Deleting code over keeping it behind a flag.
 
-<!-- DRAFT -->
 ## When you notice extra scope
 
 Stop and say which part is beyond the request, what it would cost, and what you

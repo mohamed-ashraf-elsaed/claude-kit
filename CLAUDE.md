@@ -176,7 +176,7 @@ Packagist updates automatically from the tag.
 
 ## Current state
 
-- Unreleased (on top of v0.2.2): `.claude/rules/` conventions with DRAFT markers,
+- Released v0.3.0 (on top of v0.2.2): `.claude/rules/` conventions,
   six independent architecture layers driving both rules and a **generated**
   `ArchTest`, three clean-code presets, read-only reviewer agents, the
   `/commit` `/deploy` `/dead-code` `/codemap` workflow skills, an edit-time
@@ -188,9 +188,10 @@ Packagist updates automatically from the tag.
 
 ## Content rules for stubs (product content, not our code)
 
-- A convention **we** authored — not stated by the user — ships marked
-  `<!-- DRAFT -->` so the consumer reviews it before adopting it. Never present a
-  drafted convention as settled.
+- A convention **we** authored — not stated by the user — must be reviewed and
+  approved by the maintainer before it ships unmarked. While it is awaiting that
+  review, mark it `<!-- DRAFT -->`; never present an unreviewed convention as
+  settled. The v0.3.0 rule set was reviewed and approved, so it ships unmarked.
 - Rule stubs must not reference an architecture layer other than their own, so a
   project that declined a layer never sees it named.
 - Skills stay under 150 lines with valid frontmatter and no nested file

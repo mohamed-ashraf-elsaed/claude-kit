@@ -23,9 +23,9 @@
 `claude-kit` packages a battle-tested setup so every Laravel project — and every
 developer — gets the same guardrails instead of hand-copying config between
 repos: a Stop-hook + pre-commit **quality gate**, reusable Claude Code **skills**,
-PHPStan level 7 + strict-rules, Pint, Pest with an 80% coverage gate, an
-architecture test suite, feature-doc scaffolding, and **stack-aware frontend
-tooling** (Vue, React, Blade, or none).
+PHPStan level 7 + strict-rules, Pint, Pest with an optional coverage floor, an
+architecture test suite that actually runs, feature-doc scaffolding, and
+**stack-aware frontend tooling** (Vue, React, Livewire, Blade, or none).
 
 ### Who it's for
 
@@ -119,8 +119,8 @@ your `composer.json` and running `composer require --dev mohamed-ashraf-elsaed/c
 Nothing is clobbered. An identical file is left alone, a file you have edited is
 asked about (keep / replace / show diff), `settings.json` and `CLAUDE.md` are
 merged rather than replaced, and `composer.json` / `package.json` keep your
-entries. Every convention claude-kit writes for you is marked `<!-- DRAFT -->`
-so you can review it before adopting it.
+entries. The conventions claude-kit writes are opinionated defaults — read them
+and adapt them to how your team actually works.
 
 ## Choosing what to install
 

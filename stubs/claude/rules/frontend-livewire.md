@@ -4,13 +4,11 @@ paths:
   - "resources/views/**/*.blade.php"
 ---
 
-<!-- Published by claude-kit for the Livewire + Blade stack. Every convention
-     below is a DRAFT: correct it to match the codebase, then delete the DRAFT
-     markers. -->
+<!-- Published by claude-kit for the Livewire + Blade stack. These are
+     claude-kit's opinionated defaults — adapt them to match the codebase. -->
 
 # Frontend — Livewire + Blade
 
-<!-- DRAFT -->
 ## Layout
 
 - Components in `app/Livewire/`, their views in `resources/views/livewire/`,
@@ -20,7 +18,6 @@ paths:
 - Shared markup goes in Blade components (`resources/views/components/`), not a
   Livewire component — Livewire is for interactivity, not for reuse.
 
-<!-- DRAFT -->
 ## Component discipline
 
 - Public properties are the component's state and are all explicitly typed. Keep
@@ -35,7 +32,6 @@ paths:
 - Validate in the component with a rules array or a form object — not in the
   Blade view.
 
-<!-- DRAFT -->
 ## Rendering and performance
 
 - No queries in Blade. A view receives what it renders; the component loads it,
@@ -46,7 +42,6 @@ paths:
 - A page's initial data comes from a controller or the component's `mount()`, not
   from a request the browser makes after paint.
 
-<!-- DRAFT -->
 ## The gate
 
 Prettier formats Blade and asset files as part of the shared quality gate, so an

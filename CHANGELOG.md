@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] - 2026-07-28
+## [0.3.0] - 2026-07-29
 
 ### Added
 
@@ -16,12 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   selected architecture layer, a clean-code rule in a **strict / balanced /
   relaxed** variant, a stack-specific frontend rule, the always-on
   anti-overengineering and anti-assumption rules, and a git-worktree workflow
-  rule. Every authored convention is marked `<!-- DRAFT -->` for review.
+  rule. The conventions ship as claude-kit's opinionated defaults, meant to be
+  read and adapted rather than adopted blindly.
 - **Six independent architecture choices** — Services, Repositories, Data
   Objects, Value Objects, Actions, Contracts. A layer you decline gets no rule,
   no `arch()` block, and no mention in CLAUDE.md.
 - **`tests/Arch/ArchTest.php` is generated** from those choices, composed from
   per-layer fragments, so the suite can never demand a directory you declined.
+  The Actions fragment enforces the documented one-public-method rule with
+  `->not->toHavePublicMethodsBesides(['__construct', '__invoke'])`, so a second
+  public method on an action fails the suite rather than merely contradicting
+  the rule text.
 - **Review agents.** Optional read-only `design-reviewer` (validates output
   against the stated design/plan) and `docs-reviewer` (validates output against
   supplied documents), both with `disallowedTools: Write, Edit`.

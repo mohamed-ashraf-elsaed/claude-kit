@@ -6,12 +6,11 @@ paths:
 
 <!-- Published by claude-kit for the Inertia + React stack. Inertia and Tailwind
      API details live in the bundled skills; this file is only this project's
-     conventions. Every convention below is a DRAFT: correct it to match the
-     codebase, then delete the DRAFT markers. -->
+     conventions. These are
+     claude-kit's opinionated defaults — adapt them to match the codebase. -->
 
 # Frontend — Inertia + React + TypeScript
 
-<!-- DRAFT -->
 ## Layout
 
 - Pages in `resources/js/pages/`, mirroring the route path
@@ -22,7 +21,6 @@ paths:
   casing convention — do not introduce a second one.
 - Import through the `@/` alias, never a `../../` chain.
 
-<!-- DRAFT -->
 ## Components
 
 - Function components only, typed props via an explicit interface or type alias.
@@ -34,7 +32,6 @@ paths:
 - Types shared with the backend live in `resources/js/types/`; a page never
   redeclares a shape another page already types.
 
-<!-- DRAFT -->
 ## Data and navigation
 
 - Server data reaches a page through Inertia props. Do not `fetch`/`axios` a
@@ -44,7 +41,6 @@ paths:
 - Forms go through Inertia's form handling, and validation errors come from the
   server response — no duplicated client-side rule set as the source of truth.
 
-<!-- DRAFT -->
 ## The gate
 
 `eslint` (including `react-hooks`), `prettier`, and `tsc --noEmit` all run in the

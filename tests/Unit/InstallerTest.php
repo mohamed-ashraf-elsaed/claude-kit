@@ -150,6 +150,20 @@ it('generates an arch test suite containing only the selected layers', function 
         ->and($arch)->not->toContain('App\Contracts');
 });
 
+it('enforces the one-public-method rule the actions convention documents', function (): void {
+    $dir = temp_project();
+    laravelSkeleton($dir);
+
+    installer($dir)->run(optionsWith(['architecture' => ['actions']]), 'Acme');
+
+    $arch = (new Filesystem)->get($dir.'/tests/Arch/ArchTest.php');
+
+    // The rule states an action exposes exactly one public method; without this
+    // expectation that sentence would be a claim the suite does not back.
+    expect($arch)->toContain("->not->toHavePublicMethodsBesides(['__construct', '__invoke'])")
+        ->and($arch)->toContain("->toHaveMethod('__invoke')");
+});
+
 it('never mentions a declined layer in CLAUDE.md', function (): void {
     $dir = temp_project();
     laravelSkeleton($dir);

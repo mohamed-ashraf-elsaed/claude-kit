@@ -613,7 +613,7 @@ final class InstallCommand extends Command
 
         if ($options->wants('rules')) {
             $steps[] = 'Fill in the TODO placeholders in CLAUDE.md.';
-            $steps[] = 'Review the DRAFT conventions in .claude/rules/ and make them yours.';
+            $steps[] = 'Read the conventions in .claude/rules/ and adapt them to how you actually work.';
         }
 
         if ($options->deployCommand === '' && $options->hasWorkflowSkill('deploy')) {
