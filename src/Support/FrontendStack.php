@@ -12,6 +12,7 @@ enum FrontendStack: string
 {
     case InertiaVue = 'inertia-vue';
     case InertiaReact = 'inertia-react';
+    case Livewire = 'livewire';
     case Blade = 'blade';
     case None = 'none';
 
@@ -20,7 +21,8 @@ enum FrontendStack: string
         return match ($this) {
             self::InertiaVue => 'Inertia + Vue 3 + TypeScript',
             self::InertiaReact => 'Inertia + React + TypeScript',
-            self::Blade => 'Blade / Livewire',
+            self::Livewire => 'Livewire + Blade',
+            self::Blade => 'Blade (server-rendered, no Livewire)',
             self::None => 'API-only (no frontend)',
         };
     }
@@ -39,7 +41,22 @@ enum FrontendStack: string
         return match ($this) {
             self::InertiaVue => 'inertia-vue',
             self::InertiaReact => 'inertia-react',
-            self::Blade => 'blade',
+            self::Livewire, self::Blade => 'blade',
+            self::None => null,
+        };
+    }
+
+    /**
+     * The path-scoped rule published as `.claude/rules/frontend.md`, or null when
+     * the stack has no frontend code to scope rules to.
+     */
+    public function ruleStub(): ?string
+    {
+        return match ($this) {
+            self::InertiaVue => 'claude/rules/frontend-inertia-vue.md',
+            self::InertiaReact => 'claude/rules/frontend-inertia-react.md',
+            self::Livewire => 'claude/rules/frontend-livewire.md',
+            self::Blade => 'claude/rules/frontend-blade.md',
             self::None => null,
         };
     }
@@ -57,7 +74,7 @@ enum FrontendStack: string
         return match ($this) {
             self::InertiaVue => [...$base, 'inertia-vue-development', 'tailwindcss-development', 'wayfinder-development'],
             self::InertiaReact => [...$base, 'tailwindcss-development'],
-            self::Blade => [...$base, 'tailwindcss-development'],
+            self::Livewire, self::Blade => [...$base, 'tailwindcss-development'],
             self::None => $base,
         };
     }
@@ -81,7 +98,7 @@ enum FrontendStack: string
         return match ($this) {
             self::InertiaVue => [...$lint, ...$format, 'types:check' => 'vue-tsc --noEmit'],
             self::InertiaReact => [...$lint, ...$format, 'types:check' => 'tsc --noEmit'],
-            self::Blade => $format,
+            self::Livewire, self::Blade => $format,
             self::None => [],
         };
     }
@@ -125,7 +142,7 @@ enum FrontendStack: string
                 'eslint-plugin-react' => '^7.37.0',
                 'eslint-plugin-react-hooks' => '^5.1.0',
             ],
-            self::Blade => $prettier,
+            self::Livewire, self::Blade => $prettier,
             self::None => [],
         };
     }
@@ -136,9 +153,10 @@ enum FrontendStack: string
     public function claudeRules(): string
     {
         return match ($this) {
-            self::InertiaVue => "- The app uses **Vue 3 + Inertia + TypeScript**. All `.vue`/`.ts` code must\n  pass **ESLint**, **Prettier**, and **`vue-tsc`** type-checking — these are\n  part of the shared gate, so they block commits, turns, and CI just like the\n  PHP checks.\n- A Vue component must have a single root element.",
-            self::InertiaReact => "- The app uses **React + Inertia + TypeScript**. All `.tsx`/`.ts` code must\n  pass **ESLint** (incl. `react-hooks`), **Prettier**, and **`tsc`**\n  type-checking — these are part of the shared gate, so they block commits,\n  turns, and CI just like the PHP checks.",
-            self::Blade => "- The app renders with **Blade / Livewire**. Markup and assets are formatted\n  with **Prettier** (part of the shared gate). Keep Blade templates simple and\n  push logic into components/view models — never queries in views.",
+            self::InertiaVue => "- The app uses **Vue 3 + Inertia + TypeScript**. All `.vue`/`.ts` code must\n  pass **ESLint**, **Prettier**, and **`vue-tsc`** — part of the shared gate,\n  so they block commits, turns, and CI just like the PHP checks. Component\n  conventions live in `.claude/rules/frontend.md`.",
+            self::InertiaReact => "- The app uses **React + Inertia + TypeScript**. All `.tsx`/`.ts` code must\n  pass **ESLint** (incl. `react-hooks`), **Prettier**, and **`tsc`** — part of\n  the shared gate, so they block commits, turns, and CI just like the PHP\n  checks. Component conventions live in `.claude/rules/frontend.md`.",
+            self::Livewire => "- The app renders with **Livewire + Blade**. Markup is formatted with\n  **Prettier** (part of the shared gate). Component conventions live in\n  `.claude/rules/frontend.md`.",
+            self::Blade => "- The app renders with **server-side Blade**. Markup and assets are formatted\n  with **Prettier** (part of the shared gate). Template conventions live in\n  `.claude/rules/frontend.md`.",
             self::None => "- This is an **API-only** project: there is no frontend build step, so the\n  shared quality gate runs the PHP checks only.",
         };
     }

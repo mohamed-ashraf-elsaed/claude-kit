@@ -1,0 +1,5 @@
+arch('value objects are immutable and final')
+    ->expect('App\ValueObjects')
+    ->toBeClasses()
+    ->toBeFinal()
+    ->toBeReadonly();

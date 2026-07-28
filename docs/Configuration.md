@@ -6,44 +6,88 @@ Almost everything claude-kit installs is plain, editable config in your repo. Tu
 
 | Variable | Default | Effect |
 | --- | --- | --- |
-| `CLAUDE_KIT_MIN_COVERAGE` | `80` | Minimum Pest coverage percentage the gate enforces. |
+| `CLAUDE_KIT_MIN_COVERAGE` | `80` | Fallback Pest coverage percentage, used only for a project installed before the manifest existed. A current install records its own `tests.coverage_min` (`null` = do not enforce). |
 | `CLAUDE_KIT_FEATURE_DOCS` | `1` | Set to `0` to disable the "watched code needs a feature doc" Stop-hook gate. |
+| `CLAUDE_KIT_CHECKS` | *(unset)* | Comma-separated subset of `pint,phpstan,tests` to run only those PHP checks. The Stop hook sets it from the manifest; unset means run everything configured. |
 
 Set these in your shell, CI environment, or a hook wrapper.
 
-## The `.claude-kit.json` manifest
+## The `.claude/claude-kit.json` manifest
 
-The installer writes a small manifest recording your choices; the runtime gate reads it to know what to run.
+The installer records your choices and the hash of every file it published. The runtime gate reads it to know what to run, and `claude-kit:update` reads it to know what to re-publish and what you have edited since.
 
 ```json
 {
-    "stack": "inertia-vue",
-    "tests": { "enabled": true, "tool": "pest", "coverage_min": 80 },
-    "hooks": { "feature_docs": true }
+    "project_name": "Acme",
+    "stack": "livewire",
+    "pint": true,
+    "phpstan": { "enabled": true, "level": 7, "strict": true, "larastan": true, "hook": "block" },
+    "tests": { "enabled": true, "tool": "pest", "coverage_min": null, "arch": true },
+    "architecture": ["services", "data-objects", "actions", "contracts"],
+    "rules": { "clean_code": "balanced", "behavioral": ["anti-overengineering", "anti-assumption"], "worktrees": true },
+    "hooks": { "enabled": ["stop", "pre-commit", "feature-docs"], "checks": ["pint", "phpstan", "tests"], "min_passes": 2, "feature_docs": true },
+    "agents": ["design-reviewer", "docs-reviewer"],
+    "skills": {
+        "bundled": ["laravel-best-practices", "pest-testing"],
+        "workflow": ["commit", "deploy", "dead-code", "codemap"],
+        "deploy_command": "",
+        "commit_convention": null
+    },
+    "output_style": true,
+    "scaffolding": ["rules", "docs", "editorconfig", "mcp", "ci"],
+    "files": { "CLAUDE.md": "9f2c…", ".claude/rules/clean-code.md": "4ab1…" }
 }
 ```
 
 | Key | Meaning |
 | --- | --- |
-| `tests.enabled` | Whether the gate runs tests at all. |
-| `tests.tool` | `pest` or `phpunit`. |
-| `tests.coverage_min` | Coverage threshold, or `null` to not enforce. |
-| `hooks.feature_docs` | Whether the Stop hook requires a feature doc for watched code (env var overrides). |
+| `tests.enabled` / `tests.tool` / `tests.coverage_min` | Whether the gate runs tests, with which runner, and the coverage threshold (`null` = don't enforce). |
+| `phpstan.hook` | `block`, `warn`, or `off` — what the edit-time PHPStan hook does on failure. |
+| `hooks.checks` | Which checks the **Stop hook** runs (the pre-commit hook and CI always run everything configured). |
+| `hooks.min_passes` | Consecutive clean runs required before a turn may finish (1–5). |
+| `hooks.feature_docs` | Whether the Stop hook requires a feature doc for watched code (the env var overrides it). |
+| `commit_convention` | `null` = Conventional Commits; a string is your own convention, embedded verbatim. |
+| `files` | sha256 per published file. `claude-kit:update` compares against it to tell an untouched file from one you edited. |
 
 > [!NOTE]
-> Pint and PHPStan run whenever `pint.json` / `phpstan.neon` exist — so removing one of those files disables that check. Edit the manifest to change test behavior without re-running the installer.
+> Pint and PHPStan run whenever `pint.json` / `phpstan.neon` exist — removing one of those files disables that check. Edit the manifest to change test or hook behaviour without re-running the installer.
+
+> [!TIP]
+> Installed before the manifest moved? The runtime scripts still read a legacy `.claude-kit.json` at the project root. Run `php artisan claude-kit:install` once to move it.
+
+## What lands in `.claude/`
+
+```
+.claude/
+├── settings.json          hooks + permission allowlist + outputStyle (deep-merged)
+├── claude-kit.json        the manifest above
+├── rules/                 conventions — loaded automatically
+│   ├── architecture-*.md    one per selected layer (path-scoped to app/)
+│   ├── clean-code.md        your chosen preset (path-scoped to **/*.php)
+│   ├── frontend.md          your stack's rule (path-scoped to its files)
+│   ├── anti-*.md            always loaded, no paths
+│   └── worktrees.md         always loaded, no paths
+├── agents/                design-reviewer · docs-reviewer (read-only)
+├── skills/                bundled skills + /commit /deploy /dead-code /codemap
+├── output-styles/         concise.md
+└── hooks/                 phpstan-check.sh (PostToolUse)
+```
+
+Rules with a `paths:` glob only enter context when Claude works with matching files; rules without one load every session.
 
 ## Customising the output
 
 <details>
 <summary>What each file is and how to change it</summary>
 
-- **Rules** — edit `CLAUDE.md`; fill in the product/integration/deployment `TODO`s. Never overwritten without `--force`.
-- **PHPStan** — `phpstan.neon` is generated with the level and strict toggle you chose. Change the level, add `paths` / `ignoreErrors` freely.
+- **CLAUDE.md** — project identity, the gate, and an index of the rules. Content between `<!-- claude-kit:begin -->` and `<!-- claude-kit:end -->` is regenerated by `claude-kit:update`; put your own additions **outside** the markers.
+- **Rules** — every file under `.claude/rules/` is yours. Authored conventions ship marked `<!-- DRAFT -->`: review them, correct them to match your codebase, then delete the markers.
+- **PHPStan** — `phpstan.neon` is generated with the level, Larastan, and strict toggle you chose, analysing `app/`, `database/`, and `routes/`. `config/` and `bootstrap/app.php` are deliberately left out, because Laravel's own shipped config files fail level 7 with strict-rules — widen `paths` by hand once your config is clean. The edit-time hook reads the same file, so it follows.
 - **Pint** — `pint.json` uses the Laravel preset plus a few strict rules.
+- **Architecture tests** — `tests/Arch/ArchTest.php` is generated from your layer choices. Add and remove `arch()` blocks as the app changes.
 - **ESLint / Prettier / TypeScript** — the stack config files are yours to edit.
-- **Skills** — everything under `.claude/skills/` is editable; add your own.
-- **Permissions & hooks** — `.claude/settings.json` holds the Stop-hook wiring and a permission allowlist. Extend it for your project's commands.
+- **Skills and agents** — everything under `.claude/skills/` and `.claude/agents/` is editable; add your own alongside them.
+- **Permissions & hooks** — `.claude/settings.json` holds the hook wiring and a permission allowlist. Extend it for your project's commands; claude-kit will never remove what you add.
 </details>
 
 ## The pre-commit hook
@@ -63,7 +107,7 @@ git commit --no-verify              # bypass a single commit
 composer update mohamed-ashraf-elsaed/claude-kit
 ```
 
-To refresh the copied content (skills, rules), re-run `php artisan claude-kit:install --force` for the parts you want. See **[Upgrading](Upgrading)**.
+To refresh the copied content (rules, skills, templates), run `php artisan claude-kit:update`. See **[Upgrading](Upgrading)**.
 
 ---
 <sub>[← Usage](Usage) · 🏠 [Home](Home) · [Frontend stacks →](Frontend-Stacks)</sub>

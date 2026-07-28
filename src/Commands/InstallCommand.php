@@ -14,6 +14,8 @@ use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
+use MohamedAshrafElsaed\ClaudeKit\Commands\Concerns\PromptsForFileConflicts;
+use MohamedAshrafElsaed\ClaudeKit\Support\CleanCodePreset;
 use MohamedAshrafElsaed\ClaudeKit\Support\FrontendStack;
 use MohamedAshrafElsaed\ClaudeKit\Support\Installer;
 use MohamedAshrafElsaed\ClaudeKit\Support\InstallOptions;
@@ -23,9 +25,11 @@ use MohamedAshrafElsaed\ClaudeKit\Support\TestTool;
 
 final class InstallCommand extends Command
 {
+    use PromptsForFileConflicts;
+
     protected $signature = 'claude-kit:install
-        {--stack= : inertia-vue|inertia-react|blade|none (auto-detected when omitted)}
-        {--force : Overwrite files that already exist}';
+        {--stack= : inertia-vue|inertia-react|livewire|blade|none (auto-detected when omitted)}
+        {--force : Overwrite files that already exist without asking}';
 
     protected $description = 'Interactively configure Claude Code + the quality gate for this Laravel project.';
 
@@ -53,12 +57,20 @@ final class InstallCommand extends Command
 
         $this->components->info("Installing claude-kit for a {$stack->label()} project.");
 
-        $report = (new Installer($files, $basePath, $stubsPath))->run(
-            $options,
-            $this->resolveProjectName($files, $basePath),
+        $installer = new Installer(
+            $files,
+            $basePath,
+            $stubsPath,
+            $this->fileResolver(),
+            fn (string $message): null => $this->line($message),
         );
 
+        $report = $installer->run($options, $this->resolveProjectName($files, $basePath));
+
         $this->renderReport($report);
+        $this->renderSettingsSummary($installer->settingsSummary());
+
+        $pendingComposer = $this->installDevTooling($files, $basePath, $options);
 
         if ($this->input->isInteractive() && confirm('Search skills.sh for additional skills to install?', default: false)) {
             $this->findAndAddSkills($basePath);
@@ -68,18 +80,21 @@ final class InstallCommand extends Command
             $this->configureGitHook($basePath);
         }
 
-        $this->printNextSteps($options);
+        $this->printNextSteps($options, $pendingComposer, $installer->manualSteps());
 
         return self::SUCCESS;
     }
 
     private function promptOptions(Filesystem $files, string $stubsPath, FrontendStack $stack, bool $force): InstallOptions
     {
+        $this->section('Code style & static analysis');
         $pint = confirm('Use Laravel Pint for code style?', default: true);
 
-        $phpstan = confirm('Use PHPStan (Larastan) for static analysis?', default: true);
+        $phpstan = confirm('Use PHPStan for static analysis?', default: true);
         $level = 7;
         $strict = true;
+        $larastan = true;
+        $phpstanHook = 'off';
 
         if ($phpstan) {
             $level = (int) select(
@@ -88,9 +103,22 @@ final class InstallCommand extends Command
                 default: '7',
                 hint: 'Higher is stricter. 7 is a strong default; 9 is max.',
             );
+            $larastan = confirm('Add Larastan (Laravel-aware analysis)?', default: true);
             $strict = confirm('Enable phpstan-strict-rules?', default: true);
+
+            if (confirm('Analyse every PHP file Claude edits, as it edits it?', default: true)) {
+                $phpstanHook = (string) select(
+                    label: 'When that check fails, what should happen?',
+                    options: [
+                        'block' => 'Block — feed the errors back so Claude fixes them before continuing',
+                        'warn' => 'Warn only — show a warning and let Claude carry on',
+                    ],
+                    default: 'block',
+                );
+            }
         }
 
+        $this->section('Tests');
         $tests = confirm('Set up a test gate?', default: true);
         $tool = TestTool::Pest;
         $coverage = 80;
@@ -104,7 +132,7 @@ final class InstallCommand extends Command
             ));
             $coverageInput = text(
                 label: 'Minimum coverage % to enforce (blank = do not enforce)',
-                default: '80',
+                placeholder: 'e.g. 80',
                 validate: fn (string $value): ?string => ($value === '' || ctype_digit($value)) ? null : 'Enter a number or leave blank.',
             );
             $coverage = $coverageInput === '' ? null : (int) $coverageInput;
@@ -114,20 +142,138 @@ final class InstallCommand extends Command
             }
         }
 
-        $hooks = multiselect(
-            label: 'Which hooks should enforce the gate?',
+        $this->section('Architecture');
+        $architecture = array_map(strval(...), array_values(multiselect(
+            label: 'Which layers does this project use?',
             options: [
-                'stop' => 'Claude Code Stop hook (runs the gate on every turn)',
-                'pre-commit' => 'Git pre-commit hook',
-                'feature-docs' => 'Feature-doc requirement (part of the Stop hook)',
+                'services' => 'Services (app/Services) — business logic',
+                'repositories' => 'Repositories (app/Repositories) — named persistence queries',
+                'data-objects' => 'Data Objects (app/Data) — readonly DTOs',
+                'value-objects' => 'Value Objects (app/ValueObjects) — self-validating types',
+                'actions' => 'Actions (app/Actions) — one invokable class per operation',
+                'contracts' => 'Contracts (app/Contracts) — interfaces for boundaries',
             ],
-            default: ['stop', 'pre-commit', 'feature-docs'],
-        );
+            default: ['services', 'data-objects', 'actions', 'contracts'],
+            hint: 'A layer you skip gets no rule, no arch test, and no mention in CLAUDE.md.',
+        )));
 
+        $cleanCode = CleanCodePreset::from(select(
+            label: 'How strict should the clean-code rule be?',
+            options: array_reduce(
+                CleanCodePreset::cases(),
+                static function (array $carry, CleanCodePreset $preset): array {
+                    $carry[$preset->value] = $preset->label();
+
+                    return $carry;
+                },
+                [],
+            ),
+            default: CleanCodePreset::Balanced->value,
+        ));
+
+        $this->section('Enforcement hooks');
+        $hooks = [];
+        $checks = [];
+        $minPasses = 2;
+
+        if (confirm('Validate the quality gate when Claude finishes a turn (Stop hook)?', default: true)) {
+            $hooks[] = 'stop';
+            $checks = array_map(strval(...), array_values(multiselect(
+                label: 'Which checks must pass before a turn may finish?',
+                options: [
+                    'pint' => 'Pint (code style)',
+                    'phpstan' => 'PHPStan (static analysis)',
+                    'tests' => 'Test suite',
+                ],
+                default: array_values(array_filter([
+                    $pint ? 'pint' : null,
+                    $phpstan ? 'phpstan' : null,
+                    $tests ? 'tests' : null,
+                ])),
+            )));
+            $minPasses = (int) select(
+                label: 'How many consecutive clean runs before the turn is allowed to end?',
+                options: array_map('strval', range(1, 5)),
+                default: '2',
+                hint: 'Each run repeats the selected checks; any failure blocks the turn.',
+            );
+        }
+
+        if (confirm('Install the git pre-commit hook?', default: true)) {
+            $hooks[] = 'pre-commit';
+        }
+
+        if (confirm('Require a feature doc for changed code (part of the Stop hook)?', default: true)) {
+            $hooks[] = 'feature-docs';
+        }
+
+        $this->section('Reviewers, skills & rules');
+        $agents = array_map(strval(...), array_values(multiselect(
+            label: 'Which read-only review agents should I install?',
+            options: [
+                'design-reviewer' => 'design-reviewer — checks the result against the stated design/plan',
+                'docs-reviewer' => 'docs-reviewer — checks the result against supplied docs',
+            ],
+            default: InstallOptions::AGENTS,
+        )));
+
+        $workflowSkills = array_map(strval(...), array_values(multiselect(
+            label: 'Which workflow skills should I install?',
+            options: [
+                'commit' => '/commit — stage and commit to this project\'s convention',
+                'deploy' => '/deploy — run the deploy, including per-feature steps',
+                'dead-code' => '/dead-code — detect, prove, then remove unused code',
+                'codemap' => '/codemap — create or refresh CODEMAP.md',
+            ],
+            default: InstallOptions::WORKFLOW_SKILLS,
+        )));
+
+        $deployCommand = '';
+        $commitConvention = null;
+
+        if (in_array('deploy', $workflowSkills, true)) {
+            $deployCommand = text(
+                label: 'The exact deploy command (blank leaves a TODO — nothing is invented)',
+                placeholder: 'e.g. php artisan deploy --force',
+            );
+        }
+
+        if (in_array('commit', $workflowSkills, true)) {
+            $useConventional = select(
+                label: 'Which commit message convention?',
+                options: [
+                    'conventional' => 'Conventional Commits (feat:, fix:, refactor: …)',
+                    'custom' => 'Something else — I will describe it',
+                ],
+                default: 'conventional',
+            );
+
+            if ($useConventional === 'custom') {
+                $described = text(
+                    label: 'Describe the convention (used verbatim, exactly as typed)',
+                    required: true,
+                );
+                $commitConvention = $described;
+            }
+        }
+
+        $behavioral = array_map(strval(...), array_values(multiselect(
+            label: 'Which always-on behavioural rules should I install?',
+            options: [
+                'anti-overengineering' => 'Build the smallest thing that satisfies the requirement',
+                'anti-assumption' => 'Verify or ask — never invent a detail',
+            ],
+            default: InstallOptions::BEHAVIORAL_RULES,
+        )));
+
+        $worktrees = confirm('Document the git-worktree workflow for parallel features?', default: true);
+        $outputStyle = confirm('Install the concise response style (and select it)?', default: true);
+
+        $this->section('Scaffolding');
         $scaffolding = multiselect(
             label: 'What else should I scaffold?',
             options: [
-                'rules' => 'CLAUDE.md engineering rules',
+                'rules' => 'CLAUDE.md + .claude/rules/ conventions',
                 'docs' => 'Feature-doc templates (features/)',
                 'editorconfig' => '.editorconfig + .gitattributes',
                 'mcp' => 'Laravel Boost MCP (.mcp.json)',
@@ -144,11 +290,24 @@ final class InstallCommand extends Command
             phpstan: $phpstan,
             phpstanLevel: $level,
             phpstanStrict: $strict,
+            phpstanLarastan: $larastan,
+            phpstanHook: $phpstanHook,
             tests: $tests,
             testTool: $tool,
             coverageMin: $coverage,
             archTests: $arch,
-            hooks: array_map(strval(...), array_values($hooks)),
+            architecture: $architecture,
+            cleanCode: $cleanCode,
+            hooks: $hooks,
+            validationChecks: $checks,
+            minPasses: $minPasses,
+            agents: $agents,
+            workflowSkills: $workflowSkills,
+            deployCommand: $deployCommand,
+            commitConvention: $commitConvention,
+            behavioralRules: $behavioral,
+            outputStyle: $outputStyle,
+            worktreeRule: $worktrees,
             skills: $skills,
             scaffolding: array_map(strval(...), array_values($scaffolding)),
             force: $force,
@@ -256,6 +415,12 @@ final class InstallCommand extends Command
         return Str::studly(basename($basePath));
     }
 
+    private function section(string $title): void
+    {
+        $this->newLine();
+        $this->line("<fg=cyan;options=bold>── {$title} ──</>");
+    }
+
     /**
      * @param  list<array{action: string, path: string}>  $report
      */
@@ -264,6 +429,150 @@ final class InstallCommand extends Command
         foreach ($report as $entry) {
             $this->components->twoColumnDetail($entry['path'], $entry['action']);
         }
+    }
+
+    /**
+     * @param  array{added: list<string>, changed: list<string>, kept: list<string>}  $summary
+     */
+    private function renderSettingsSummary(array $summary): void
+    {
+        if ($summary['kept'] === []) {
+            return;
+        }
+
+        $this->components->warn(
+            'Left your existing .claude/settings.json values alone: '.implode(', ', $summary['kept'])
+        );
+    }
+
+    /**
+     * claude-kit does not require the tools it configures, so the selected ones
+     * have to be added to the project. Returns the command still to be run, or
+     * null when there is nothing left to do.
+     */
+    private function installDevTooling(Filesystem $files, string $basePath, InstallOptions $options): ?string
+    {
+        $missing = array_values(array_diff(
+            $options->requiredDevPackages(),
+            $this->installedPackages($files, $basePath),
+        ));
+
+        if ($missing === []) {
+            return null;
+        }
+
+        $command = 'composer require --dev '.implode(' ', $missing);
+
+        if (! $this->input->isInteractive()) {
+            return $command;
+        }
+
+        $this->newLine();
+        $this->components->info('The selected tooling is not installed yet: '.implode(', ', $missing));
+
+        if (! confirm("Run `{$command}` now?", default: true)) {
+            return $command;
+        }
+
+        $result = Process::path($basePath)->timeout(600)->run($command);
+
+        if ($result->successful()) {
+            $this->components->info('Installed: '.implode(', ', $missing));
+
+            return null;
+        }
+
+        $output = trim($result->errorOutput().$result->output());
+
+        $this->components->error('composer could not install them. Output:');
+        $this->line($output);
+
+        if ($this->isPestPhpunitConflict($output)) {
+            $this->explainPestConflict($command);
+        }
+
+        return $command;
+    }
+
+    /**
+     * Composer refused because Pest and PHPUnit cannot both be satisfied — the
+     * shape of failure a current Laravel skeleton produces.
+     */
+    private function isPestPhpunitConflict(string $output): bool
+    {
+        return str_contains($output, 'pestphp/pest')
+            && str_contains($output, 'phpunit/phpunit')
+            && str_contains($output, 'conflict');
+    }
+
+    private function explainPestConflict(string $command): void
+    {
+        $this->newLine();
+        $this->line('  This is a known conflict upstream of claude-kit, not something the kit can fix:');
+        $this->line('  current Pest releases conflict with phpunit/phpunit newer than 12.5.30, and the');
+        $this->line('  Laravel 13 skeleton pins a newer PHPUnit than that, so a plain require cannot');
+        $this->line('  resolve. Re-running with -W resolves it by letting composer downgrade PHPUnit');
+        $this->line('  to 12.5.30. Whether to accept that downgrade is your call:');
+        $this->newLine();
+        $this->line("    as proposed:  {$command}");
+        $this->line("    with -W:      {$command} -W");
+    }
+
+    /**
+     * Package names already present in the project. installed.json records what
+     * is actually on disk; composer.lock is the fallback for a project whose
+     * dependencies have not been installed yet.
+     *
+     * @return list<string>
+     */
+    private function installedPackages(Filesystem $files, string $basePath): array
+    {
+        $installed = $basePath.'/vendor/composer/installed.json';
+
+        if ($files->exists($installed)) {
+            $decoded = json_decode($files->get($installed), true);
+            $packages = is_array($decoded) ? ($decoded['packages'] ?? []) : [];
+
+            if (is_array($packages)) {
+                return $this->packageNames($packages);
+            }
+        }
+
+        $lock = $basePath.'/composer.lock';
+
+        if (! $files->exists($lock)) {
+            return [];
+        }
+
+        $decoded = json_decode($files->get($lock), true);
+
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        $packages = array_merge(
+            is_array($decoded['packages'] ?? null) ? $decoded['packages'] : [],
+            is_array($decoded['packages-dev'] ?? null) ? $decoded['packages-dev'] : [],
+        );
+
+        return $this->packageNames($packages);
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $packages
+     * @return list<string>
+     */
+    private function packageNames(array $packages): array
+    {
+        $names = [];
+
+        foreach ($packages as $package) {
+            if (is_array($package) && is_string($package['name'] ?? null)) {
+                $names[] = $package['name'];
+            }
+        }
+
+        return $names;
     }
 
     private function configureGitHook(string $basePath): void
@@ -275,16 +584,40 @@ final class InstallCommand extends Command
         Process::path($basePath)->run('git config core.hooksPath .githooks');
     }
 
-    private function printNextSteps(InstallOptions $options): void
+    /**
+     * @param  list<string>  $manualSteps
+     */
+    private function printNextSteps(InstallOptions $options, ?string $pendingComposer, array $manualSteps): void
     {
-        $steps = ['Run `composer install` to install the dev tooling'.($options->hasHook('pre-commit') ? ' and wire the git pre-commit hook.' : '.')];
+        $steps = [];
+
+        if ($pendingComposer !== null) {
+            $steps[] = 'Install the selected tooling: `'.$pendingComposer.'`';
+        }
+
+        if ($options->hasHook('pre-commit')) {
+            $steps[] = 'Run `composer install` to wire the git pre-commit hook.';
+        }
 
         if ($options->stack->hasFrontendTooling()) {
             $steps[] = 'Run `npm install` to pull the frontend devDependencies.';
         }
 
+        if ($options->pint) {
+            $steps[] = 'Run `composer lint` once to normalize Laravel\'s shipped files before your first commit.';
+        }
+
+        foreach ($manualSteps as $step) {
+            $steps[] = $step;
+        }
+
         if ($options->wants('rules')) {
             $steps[] = 'Fill in the TODO placeholders in CLAUDE.md.';
+            $steps[] = 'Review the DRAFT conventions in .claude/rules/ and make them yours.';
+        }
+
+        if ($options->deployCommand === '' && $options->hasWorkflowSkill('deploy')) {
+            $steps[] = 'Record the deploy command in .claude/skills/deploy/SKILL.md (it has a TODO).';
         }
 
         if ($options->tests && $options->coverageMin !== null) {

@@ -1,0 +1,3 @@
+arch('contracts are interfaces')
+    ->expect('App\Contracts')
+    ->toBeInterfaces();

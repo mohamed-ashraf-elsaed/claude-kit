@@ -1,0 +1,5 @@
+arch('services hold business logic, are final and suffixed')
+    ->expect('App\Services')
+    ->toBeClasses()
+    ->toBeFinal()
+    ->toHaveSuffix('Service');

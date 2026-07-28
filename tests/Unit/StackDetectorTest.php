@@ -28,9 +28,27 @@ it('detects an Inertia + React project from package.json', function (): void {
         ->toBe(FrontendStack::InertiaReact);
 });
 
-it('detects a Blade/Livewire project', function (): void {
+it('detects a Livewire project from composer.json', function (): void {
     $dir = temp_project();
     writeJson($dir, 'composer.json', ['require' => ['livewire/livewire' => '^3.0']]);
+
+    expect((new StackDetector(new Filesystem, $dir))->detect())
+        ->toBe(FrontendStack::Livewire);
+});
+
+it('prefers Livewire over the generic Blade fallback', function (): void {
+    $dir = temp_project();
+    writeJson($dir, 'composer.json', ['require-dev' => ['livewire/livewire' => '^3.0']]);
+    writeJson($dir, 'package.json', ['devDependencies' => ['vite' => '^6.0']]);
+
+    expect((new StackDetector(new Filesystem, $dir))->detect())
+        ->toBe(FrontendStack::Livewire);
+});
+
+it('falls back to Blade for a project with assets but no Livewire, Vue or React', function (): void {
+    $dir = temp_project();
+    writeJson($dir, 'composer.json', ['require' => ['laravel/framework' => '^13.0']]);
+    writeJson($dir, 'package.json', ['devDependencies' => ['vite' => '^6.0']]);
 
     expect((new StackDetector(new Filesystem, $dir))->detect())
         ->toBe(FrontendStack::Blade);

@@ -1,0 +1,18 @@
+This project uses **Conventional Commits**:
+
+```
+<type>(<optional scope>): <subject>
+
+<optional body — why, not what>
+<optional footer — BREAKING CHANGE: …, refs #123>
+```
+
+Types: `feat` (new behaviour), `fix` (bug fix), `refactor` (no behaviour
+change), `perf`, `test`, `docs`, `build`, `ci`, `chore`, `style` (formatting
+only). The scope is the area touched (`auth`, `billing`, `orders`) and is
+optional — omit it rather than inventing one.
+
+- `feat` and `fix` describe user-visible change; everything else does not.
+- A breaking change adds a `!` after the type (`feat!:`) **and** a
+  `BREAKING CHANGE:` footer explaining the migration.
+- Subject in the imperative, lower case after the colon, no trailing period.

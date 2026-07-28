@@ -47,17 +47,22 @@
         "illuminate/console": "^11.0 || ^12.0 || ^13.0",
         "illuminate/filesystem": "^11.0 || ^12.0 || ^13.0",
         "illuminate/support": "^11.0 || ^12.0 || ^13.0",
-        "laravel/prompts": "^0.1 || ^0.2 || ^0.3",
-        "laravel/pint": "^1.20",
-        "larastan/larastan": "^3.0",
-        "phpstan/phpstan-strict-rules": "^2.0",
-        "pestphp/pest": "^3.0 || ^4.0",
-        "pestphp/pest-plugin-laravel": "^3.0 || ^4.0"
+        "laravel/prompts": "^0.1 || ^0.2 || ^0.3"
     },
     "require-dev": {
-        "orchestra/testbench": "^9.0 || ^10.0"
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.20",
+        "orchestra/testbench": "^9.0 || ^10.0",
+        "pestphp/pest": "^3.0 || ^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0 || ^4.0",
+        "phpstan/phpstan-strict-rules": "^2.0"
     },
     "suggest": {
+        "laravel/pint": "Runs the code-style check the installer configures in pint.json.",
+        "larastan/larastan": "Adds Laravel-aware static analysis to the generated phpstan.neon.",
+        "phpstan/phpstan-strict-rules": "Adds the strict rule set the generated phpstan.neon can include.",
+        "pestphp/pest": "Runs the test gate and the generated architecture test suite.",
+        "pestphp/pest-plugin-laravel": "Adds the Laravel test helpers the Pest gate uses.",
         "laravel/boost": "Adds the Laravel Boost MCP server that claude-kit wires into .mcp.json."
     },
     "autoload": {

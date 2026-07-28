@@ -1,0 +1,5 @@
+arch('repositories are final, suffixed and own persistence queries')
+    ->expect('App\Repositories')
+    ->toBeClasses()
+    ->toBeFinal()
+    ->toHaveSuffix('Repository');

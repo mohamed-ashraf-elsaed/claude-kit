@@ -39,7 +39,11 @@ final class StackDetector
             return FrontendStack::InertiaReact;
         }
 
-        if (in_array('livewire/livewire', $composerDependencies, true) || $package !== []) {
+        if (in_array('livewire/livewire', $composerDependencies, true)) {
+            return FrontendStack::Livewire;
+        }
+
+        if ($package !== []) {
             return FrontendStack::Blade;
         }
 

@@ -23,33 +23,59 @@ tooling (Inertia+Vue, Inertia+React, Blade/Livewire, or API-only).
 - Supports PHP **8.2–8.4** and Laravel **11 / 12 / 13**.
 - Installed by consumers with `composer require --dev` then `php artisan claude-kit:install`.
 
+> **Dependency contract (do not undo).** `require` holds only `illuminate/*` and
+> `laravel/prompts`. Pint, Larastan, phpstan-strict-rules, Pest, and
+> pest-plugin-laravel live in `suggest` (and in our own `require-dev`), because
+> requiring them forced a Pest/PHPUnit version on every consumer and could not
+> resolve against a fresh Laravel skeleton. The installer computes the exact
+> `composer require --dev …` line from the selected options instead.
+
 ## Repository map (know this before editing)
 
 ```
 src/
-  ClaudeKitServiceProvider.php     Registers the command (auto-discovered)
-  Commands/InstallCommand.php      `claude-kit:install` — prompts + flags, THIN
+  ClaudeKitServiceProvider.php     Registers both commands (auto-discovered)
+  Commands/
+    InstallCommand.php             `claude-kit:install` — prompts + flags, THIN
+    UpdateCommand.php              `claude-kit:update` — manifest → options, THIN
+    Concerns/PromptsForFileConflicts.php   Shared keep/replace/diff prompt (both commands)
   Support/
-    FrontendStack.php              Enum: per-stack skills/scripts/deps/config/prose
+    FrontendStack.php              Enum: per-stack skills/scripts/deps/config/rule/prose
     TestTool.php                   Enum: Pest | PHPUnit
-    InstallOptions.php             Readonly DTO: every resolved choice + defaults()
+    CleanCodePreset.php            Enum: strict | balanced | relaxed → rule stub
+    InstallOptions.php             Readonly DTO: every choice + defaults() + fromManifest()
     StackDetector.php              Detects the stack from composer.json + package.json
     Installer.php                  The workhorse — pure filesystem, no shell-outs
+    FileWriter.php                 ALL writes go through it; also the line diff
+    StubRenderer.php               Reads a stub, substitutes {{PLACEHOLDER}}
+    Manifest.php                   .claude/claude-kit.json (+ legacy fallback) + file hashes
+    SettingsMerger.php             Deep, non-destructive .claude/settings.json merge
+    ManagedBlock.php               claude-kit:begin/end region inside CLAUDE.md
+    PhpunitXmlPatcher.php          Adds a tests/Arch testsuite to the host phpunit.xml
     SkillInstaller.php             Wraps `npx skills find/add` (skills.sh)
     PackageJsonMerger.php          Idempotent, non-destructive package.json merge
     ComposerJsonMerger.php         Idempotent, non-destructive composer.json merge
 runtime/                           REFERENCED from vendor/ in host projects (auto-update)
-  quality-checks.sh                Host gate: Pint/PHPStan (presence) + tests (manifest) + frontend
-  hooks/stop-validate.sh           Host Stop hook: gate + feature-doc requirement
+  quality-checks.sh                Host gate: Pint/PHPStan (presence) + tests (manifest) +
+                                   frontend; CLAUDE_KIT_CHECKS filters the PHP checks
+  hooks/stop-validate.sh           Host Stop hook: N consecutive gate runs + feature docs
 stubs/                             PUBLISHED (copied) into host projects
-  claude/skills/**                 (settings.json is GENERATED, not a stub)
-  CLAUDE.md.stub                   Generic host rules with {{PROJECT_NAME}}/{{FRONTEND_RULES}}
-  pint.json.stub  tests/Arch/ArchTest.php.stub   (phpstan.neon is GENERATED)
-  githooks/pre-commit  editorconfig  gitattributes
+  CLAUDE.md.stub                   Short host rules; {{PROJECT_NAME}} {{ARCHITECTURE_LAYERS}}
+                                   {{FRONTEND_RULES}} {{RULES_INDEX}} {{QUALITY_GATE}} {{FEATURE_DOCS}}
+  claude/rules/**                  architecture-<layer> · clean-code.{strict,balanced,relaxed}
+                                   frontend-<stack> · anti-* · worktrees
+  claude/skills/**                 The 7 bundled (Laravel-authored) skills
+  claude/workflows/**              OUR skills: commit (+convention.md.stub) deploy dead-code codemap
+  claude/agents/**                 design-reviewer · docs-reviewer (read-only)
+  claude/output-styles/concise.md  Selected via settings.json only when chosen
+  claude/hooks/phpstan-check.sh    Published + rendered ({{PHPSTAN_MODE}}, {{PHPSTAN_LEVEL}})
+  tests/Arch/ArchTest.php.stub     Base blocks; layers/*.php.stub appended per selection
+  pint.json.stub                   (phpstan.neon + settings.json are GENERATED)
+  githooks/pre-commit  editorconfig  gitattributes  mcp.json
   features/{_TEMPLATE/*, README.md}
   github/workflows/{tests,lint}.yml   (host CI — NOT this repo's CI)
-  frontend/{inertia-vue,inertia-react,blade}/*
-tests/                             Pest: Unit (logic) + Feature (command via Testbench)
+  frontend/{inertia-vue,inertia-react,blade}/*   (livewire reuses blade/)
+tests/                             Pest: Unit (logic) + Feature (commands via Testbench)
 docs/                              Wiki pages (also pushed to the GitHub Wiki)
 bin/quality-checks.sh              THIS repo's own gate (Pint/PHPStan/Pest + changelog rule)
 .githooks/pre-commit               THIS repo's committed pre-commit gate
@@ -63,33 +89,56 @@ bin/quality-checks.sh              THIS repo's own gate (Pint/PHPStan/Pest + cha
   propagates fixes everywhere. Changing a runtime file changes behavior for
   every consumer — treat it as an API. The host hooks and the generated
   `phpstan.neon` reference vendor paths; keep them stable.
-- **`stubs/` is published (copied) once.** Consumers own their copy; we cannot
-  push updates to an already-installed stub except via `install --force`. So put
-  *machinery* in `runtime/` and *content/opinion* in `stubs/`.
+- **`stubs/` is published (copied).** Consumers own their copy; updates reach
+  them only when they run `claude-kit:update` (or `install --force`), which uses
+  the per-file hashes in the manifest to refresh untouched files silently and ask
+  about edited ones. So put *machinery* in `runtime/` and *content/opinion* in
+  `stubs/`. The one published *script* is `.claude/hooks/phpstan-check.sh`,
+  because it is rendered per project.
 
 ## How the installer works (don't re-derive)
 
 `InstallCommand` (thin) resolves the stack (`--stack` flag → else `StackDetector`
 → else `select`), then builds an **`InstallOptions`** — interactively via
-`promptOptions()` (Pint? PHPStan?+level+strict, tests?+runner+coverage+arch,
-hooks, skills, extras) or via `InstallOptions::defaults()` when non-interactive.
-It hands that to `Installer::run($options, $projectName)`, then optionally runs
-the skills.sh finder (`SkillInstaller`) and wires the git hook.
+`promptOptions()` (six titled sections: code style & static analysis, tests,
+architecture, enforcement hooks, reviewers/skills/rules, scaffolding) or via
+`InstallOptions::defaults()` when non-interactive. It hands that to
+`Installer::run($options, $projectName)`, then optionally runs the skills.sh
+finder (`SkillInstaller`) and wires the git hook.
+
+`UpdateCommand` (thin) reads the manifest, rebuilds the same DTO via
+`InstallOptions::fromManifest()`, and runs the **same** `Installer` — with the
+recorded file hashes, so an untouched file is refreshed silently and only a file
+the team edited reaches the prompt. It asks nothing about *what* to install.
 
 `Installer` is **pure filesystem** (testable against a temp dir):
-- Generates `.claude/settings.json` (Stop hook + allowlist reflect the choices),
-  `phpstan.neon` (chosen level + strict toggle), and the `.claude-kit.json`
-  manifest (test runner, coverage, feature-docs) that the runtime gate reads.
-- `copyStub` / `copyTree` write files, skipping existing ones unless `force`,
-  applying `{{PLACEHOLDER}}` replacements; every write is recorded as
-  created/overwritten/skipped and returned as the report.
+- Generates `.claude/settings.json` (**merged**, never clobbered — see
+  `SettingsMerger`), `phpstan.neon` (level + larastan + strict toggles),
+  `tests/Arch/ArchTest.php` (base stub + one fragment per selected layer), the
+  CLAUDE.md managed block, and the `.claude/claude-kit.json` manifest that the
+  runtime gate and `claude-kit:update` read.
+- **Every** write goes through `FileWriter`, which is the single place deciding
+  created / unchanged / updated / overwritten / skipped. Prompting is *not* here:
+  it calls the `$conflictResolver` closure the command layer injected.
+  `putMerged()` is for content that already incorporates the project's own
+  (settings.json, CLAUDE.md) and therefore never asks.
 - Frontend + composer changes go through the two mergers, which **preserve
   existing keys** and are **idempotent**.
 - `FrontendStack` is the one place per-stack differences live (skills, npm
-  scripts, devDependencies, stub directory, CLAUDE.md prose). Add a stack by
-  extending this enum + adding `stubs/frontend/<dir>/`.
+  scripts, devDependencies, stub directory, frontend rule stub, CLAUDE.md prose).
+  Add a stack by extending this enum + `stubs/frontend/<dir>/` +
+  `stubs/claude/rules/frontend-<stack>.md`.
+- `Installer::LAYERS` + `stubs/tests/Arch/layers/` are the one place per-layer
+  differences live. **A declined layer must get no rule, no arch block, and no
+  CLAUDE.md mention** — there are tests for exactly this.
 - The runtime gate runs Pint/PHPStan when their config files exist and tests per
-  the manifest — so what the user selected is exactly what runs.
+  the manifest — so what the user selected is exactly what runs. The Stop hook
+  additionally repeats it `hooks.min_passes` times and honours `hooks.checks`.
+
+**Honest hook semantics** (verified against the Claude Code docs — do not
+"improve" these): a `PostToolUse` hook runs *after* the edit, so exit 2 cannot
+revert it; it only feeds the errors back to Claude (`block`) versus warning the
+user via `systemMessage` (`warn`). Only the `Stop` hook truly blocks (exit 2).
 
 ## Working here — commands
 
@@ -127,11 +176,30 @@ Packagist updates automatically from the tag.
 
 ## Current state
 
-- v0.2.0: fully interactive installer (Pint/PHPStan+level/tests+runner+coverage/
-  hooks/skills/extras), skills.sh finder, generated `phpstan.neon` +
-  `.claude/settings.json`, `.claude-kit.json` manifest, manifest-driven gate.
-  4 stacks, hybrid runtime/stubs, idempotent mergers, full test suite, CI
-  (tests/lint/release). See `CHANGELOG.md` for the authoritative status.
+- Unreleased (on top of v0.2.2): `.claude/rules/` conventions with DRAFT markers,
+  six independent architecture layers driving both rules and a **generated**
+  `ArchTest`, three clean-code presets, read-only reviewer agents, the
+  `/commit` `/deploy` `/dead-code` `/codemap` workflow skills, an edit-time
+  PHPStan hook, the Stop-hook `min_passes` verification loop, a concise output
+  style, `claude-kit:update`, per-file conflict resolution with a built-in diff,
+  a deep-merged `settings.json`, a delimited CLAUDE.md block, the manifest at
+  `.claude/claude-kit.json` (legacy root path still read), and **5** stacks
+  (Livewire split from Blade). See `CHANGELOG.md` for the authoritative status.
+
+## Content rules for stubs (product content, not our code)
+
+- A convention **we** authored — not stated by the user — ships marked
+  `<!-- DRAFT -->` so the consumer reviews it before adopting it. Never present a
+  drafted convention as settled.
+- Rule stubs must not reference an architecture layer other than their own, so a
+  project that declined a layer never sees it named.
+- Skills stay under 150 lines with valid frontmatter and no nested file
+  references. `/commit` and `/deploy` carry `disable-model-invocation: true`
+  because Claude must never decide to commit or deploy on its own.
+- Never invent a project-specific value (a deploy command, a commit convention).
+  Ask, or ship a clearly marked TODO.
+- Do not contradict the bundled `laravel-best-practices` skill; it is
+  Laravel-authored content we republish untouched.
 
 ## Pointers
 

@@ -9,28 +9,33 @@ flowchart TD
     A{package.json<br/>has 'vue'?} -- yes --> V[inertia-vue]
     A -- no --> B{has 'react'?}
     B -- yes --> R[inertia-react]
-    B -- no --> C{livewire/livewire<br/>or a package.json?}
+    B -- no --> LW{composer.json has<br/>livewire/livewire?}
+    LW -- yes --> L[livewire]
+    LW -- no --> C{has a package.json?}
     C -- yes --> BL[blade]
     C -- no --> N[none — API-only]
     classDef v fill:#42b883,stroke:#2f855a,color:#fff;
     classDef r fill:#61dafb,stroke:#2b6cb0,color:#000;
     classDef b fill:#f59e0b,stroke:#b45309,color:#fff;
     classDef n fill:#6b7280,stroke:#374151,color:#fff;
-    class V v; class R r; class BL b; class N n;
+    class V v; class R r; class L b; class BL b; class N n;
 ```
 
-Override anytime with `--stack=inertia-vue|inertia-react|blade|none`.
+Override anytime with `--stack=inertia-vue|inertia-react|livewire|blade|none`.
 
 ## What each stack installs
 
-| Stack | Config files | npm scripts | Type check | Extra skills |
-| --- | --- | --- | --- | --- |
-| **inertia-vue** | `eslint.config.js`, `.prettierrc`, `tsconfig.json` | lint, format, types | `vue-tsc --noEmit` | inertia-vue-development, tailwindcss-development, wayfinder-development |
-| **inertia-react** | `eslint.config.js`, `.prettierrc`, `tsconfig.json` | lint, format, types | `tsc --noEmit` | tailwindcss-development |
-| **blade** | `.prettierrc` | format | — | tailwindcss-development |
-| **none** | *(none)* | *(none)* | — | *(none)* |
+| Stack | Config files | npm scripts | Type check | Extra skills | Frontend rule scope |
+| --- | --- | --- | --- | --- | --- |
+| **inertia-vue** | `eslint.config.js`, `.prettierrc`, `tsconfig.json` | lint, format, types | `vue-tsc --noEmit` | inertia-vue-development, tailwindcss-development, wayfinder-development | `resources/js/**/*.{vue,ts}` |
+| **inertia-react** | `eslint.config.js`, `.prettierrc`, `tsconfig.json` | lint, format, types | `tsc --noEmit` | tailwindcss-development | `resources/js/**/*.{tsx,ts}` |
+| **livewire** | `.prettierrc` | format | — | tailwindcss-development | `app/Livewire/**/*.php`, `resources/views/**/*.blade.php` |
+| **blade** | `.prettierrc` | format | — | tailwindcss-development | `resources/views/**/*.blade.php` |
+| **none** | *(none)* | *(none)* | — | *(none)* | *(no frontend rule)* |
 
 > Base skills installed for **every** stack: `laravel-best-practices`, `pest-testing`.
+>
+> Each stack publishes its own `.claude/rules/frontend.md`, path-scoped to the files in the last column, so it only enters context when Claude touches frontend code.
 
 ## The gate is stack-aware
 

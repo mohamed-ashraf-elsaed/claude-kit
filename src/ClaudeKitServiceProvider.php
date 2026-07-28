@@ -6,6 +6,7 @@ namespace MohamedAshrafElsaed\ClaudeKit;
 
 use Illuminate\Support\ServiceProvider;
 use MohamedAshrafElsaed\ClaudeKit\Commands\InstallCommand;
+use MohamedAshrafElsaed\ClaudeKit\Commands\UpdateCommand;
 
 final class ClaudeKitServiceProvider extends ServiceProvider
 {
@@ -14,6 +15,7 @@ final class ClaudeKitServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,
+                UpdateCommand::class,
             ]);
         }
     }

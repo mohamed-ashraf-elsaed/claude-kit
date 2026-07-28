@@ -1,0 +1,6 @@
+arch('data objects are immutable, final and suffixed')
+    ->expect('App\Data')
+    ->toBeClasses()
+    ->toBeFinal()
+    ->toBeReadonly()
+    ->toHaveSuffix('Data');

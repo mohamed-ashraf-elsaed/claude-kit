@@ -1,0 +1,6 @@
+arch('single-purpose actions are final, suffixed and invokable')
+    ->expect('App\Actions')
+    ->toBeClasses()
+    ->toBeFinal()
+    ->toHaveSuffix('Action')
+    ->toHaveMethod('__invoke');
