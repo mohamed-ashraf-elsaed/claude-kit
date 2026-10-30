@@ -214,3 +214,7 @@ Please report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
 ## License
 
 The MIT License. See [LICENSE](LICENSE).
+
+## Author
+
+Made by [Mohamed Ashraf Elsaed](https://mohamedashrafelsaed.com), technical lead and backend architect in Cairo. Project page and more tools: [mohamedashrafelsaed.com/projects/claude-kit/](https://mohamedashrafelsaed.com/projects/claude-kit/).
