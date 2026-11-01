@@ -3,7 +3,7 @@
     "description": "One command sets up Claude Code (and any AI coding agent) on a Laravel project: engineering rules, a quality gate (PHPStan, Pint, Pest), skills, git hooks, and stack-aware frontend tooling.",
     "type": "library",
     "license": "MIT",
-    "homepage": "https://github.com/mohamed-ashraf-elsaed/claude-kit",
+    "homepage": "https://mohamedashrafelsaed.com/projects/claude-kit/",
     "keywords": [
         "laravel",
         "claude",
@@ -32,15 +32,16 @@
     ],
     "authors": [
         {
-            "name": "Mohamed Elsaed",
-            "email": "m.ashraf.saed@gmail.com",
+            "name": "Mohamed Ashraf Elsaed",
+            "email": "hello@mohamedashrafelsaed.com",
+            "homepage": "https://mohamedashrafelsaed.com",
             "role": "Developer"
         }
     ],
     "support": {
         "issues": "https://github.com/mohamed-ashraf-elsaed/claude-kit/issues",
         "source": "https://github.com/mohamed-ashraf-elsaed/claude-kit",
-        "docs": "https://github.com/mohamed-ashraf-elsaed/claude-kit/wiki"
+        "docs": "https://claude-kit.mohamedashrafelsaed.com/"
     },
     "require": {
         "php": "^8.2",
