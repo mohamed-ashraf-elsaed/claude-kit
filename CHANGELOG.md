@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Package metadata only: the Composer `homepage` now points to the project page
+  at mohamedashrafelsaed.com, the author is listed as Mohamed Ashraf Elsaed with
+  a homepage and contact email, and `support.docs` points to the docs site at
+  claude-kit.mohamedashrafelsaed.com. The installed output does not change.
+
 ## [0.3.0] - 2026-07-29
 
 ### Added
